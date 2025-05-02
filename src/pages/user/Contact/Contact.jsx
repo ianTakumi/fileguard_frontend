@@ -25,10 +25,22 @@ const Contact = () => {
 
   return (
     <div className="mt-10">
-      <div className="bg-[#4285F4] text-white text-left banner mt-10 py-[80px] px-[60px]">
-        <h1>Contact Us</h1>
-        <div className="banner-links">
-          <Link to="/">Home</Link> / <Link to="/contact">Contact Us</Link>
+      <div className="bg-[#4285F4] text-white text-left mt-10 py-[80px] px-[60px]">
+        <h1 className="text-5xl mb-5">Contact Us</h1>
+        <div className=" text-2xl">
+          <Link
+            to="/"
+            className="text-white no-underline font-medium mx-[10px] transition-colors duration-300 ease-in-out hover:text-[#cce0ff]"
+          >
+            Home
+          </Link>
+          /
+          <Link
+            to="/contact"
+            className="text-white no-underline font-medium mx-[10px] transition-colors duration-300 ease-in-out hover:text-[#cce0ff]"
+          >
+            Contact Us
+          </Link>
         </div>
       </div>
 
@@ -74,12 +86,14 @@ const Contact = () => {
       </div>
 
       <div className="contact-form">
-        <div className="form-header">
-          <hr />
-          <span>Get in touch</span>
+        <div className="flex items-center mb-5">
+          <hr className="flex-1 mr-[10px] border-0 border-t border-[#ccc]" />
+          <span className="font-bold text-[#4285f4] text-2xl">
+            Get in touch
+          </span>
         </div>
-        <h2>Have questions?</h2>
-        <p>
+        <h2 className="text-4xl text-[#333] mb-2.5 ">Have questions?</h2>
+        <p className="text-[1rem] text-[#666] mb-5 leading-[1.6]">
           Have any questions, feedback, or need assistance? Our team is here to
           support you. Feel free to reach out to us, and we’ll do our best to
           make your experience as smooth as possible. We look forward to hearing
@@ -134,7 +148,10 @@ const Contact = () => {
             )}
           </div>
 
-          <button type="submit" className="submit-button">
+          <button
+            type="submit"
+            className="w-full p-[14px] text-[1.2rem] text-white bg-[#4285f4] hover:bg-[#357ae8] rounded-[8px] cursor-pointer font-bold transition-colors duration-300 ease-in-out"
+          >
             Send message
           </button>
         </form>
