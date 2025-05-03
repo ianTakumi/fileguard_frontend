@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "./signup.css";
 import client from "../../../utils/client";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -63,6 +62,7 @@ const SignUp = () => {
     checkUniqueness();
     checkEmailUniqueness();
   }, [username, email, setError]);
+
   const onSubmit = async (data) => {
     try {
       // Submit form data to API endpoint
@@ -78,17 +78,13 @@ const SignUp = () => {
     }
   };
 
-  const handleGoHome = () => {
-    navigate("/");
-  };
-
   return (
-    <div className="signup-container">
+    <div className="flex h-screen">
       {/* Left side - Sign Up Form */}
-      <div className="signup-form">
+      <div className="flex-1 flex-col items-center p-8 bg-[#fff]">
         <div
           className="flex flex-col justify-center items-center cursor-pointer"
-          onClick={handleGoHome}
+          onClick={() => navigate("/")}
         >
           <img
             src="/images/logo.png"
@@ -99,73 +95,30 @@ const SignUp = () => {
           <p className="text-2xl font-bold font-sans">FileGuard</p>
         </div>
         {/* Sign Up Form */}
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full">
           <div className="mb-4">
-            <label>First Name*</label>
+            <label className="text-sm mb-2 text-[#555]">Name*</label>
             <input
-              id="first_name"
-              type="text"
-              placeholder="Ex: John"
-              className={`${getBorderColor(
-                "first_name",
-                errors,
-                touchedFields
-              )}`}
-              {...register("first_name", {
-                required: "First Name is required",
-              })}
-            />
-            {errors.first_name && (
-              <p className="text-red-500 text-sm">
-                {errors.first_name.message}
-              </p>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <label>Last Name*</label>
-            <input
-              id="last_name"
+              id="name"
               type="text"
               placeholder="Ex: Doe"
-              className={`${getBorderColor(
-                "last_name",
-                errors,
-                touchedFields
-              )}`}
-              {...register("last_name", {
-                required: "Last Name is required",
+              className="w-full p-2 mb-4 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {...register("name", {
+                required: "Name is required",
               })}
             />
-            {errors.last_name && (
+            {errors.name && (
               <p className="text-red-500 text-sm">{errors.last_name.message}</p>
             )}
           </div>
 
           <div className="mb-4">
-            <label>Username*</label>
-            <input
-              id="username"
-              type="text"
-              placeholder="Ex: johndoe123"
-              className={`${getBorderColor("username", errors, touchedFields)}`}
-              {...register("username", {
-                required: "Username is required",
-              })}
-            />
-            {errors.username && (
-              <p className="text-red-500 text-sm">{errors.username.message}</p>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <label>Email Address*</label>
+            <label className="text-sm mb-2 text-[#555]">Email Address*</label>
             <input
               id="email"
               type="email"
               placeholder="mail@example.com"
-              style={{ margin: 0 }}
-              className={` ${getBorderColor("email", errors, touchedFields)}`}
+              className="w-full p-2 mb-4 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               {...register("email", {
                 required: "Email is required",
                 pattern: {
@@ -180,13 +133,12 @@ const SignUp = () => {
           </div>
 
           <div className="mb-4">
-            <label>Password*</label>
+            <label className="text-sm mb-2 text-[#555]">Password*</label>
             <input
               id="password"
               type="password"
               placeholder="Min. 8 characters"
-              style={{ margin: 0 }}
-              className={`${getBorderColor("password", errors, touchedFields)}`}
+              className="w-full p-2 mb-4 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               {...register("password", {
                 required: "Password is required",
                 minLength: {
@@ -200,30 +152,21 @@ const SignUp = () => {
             )}
           </div>
 
-          <button type="submit" className="signup-button">
+          <button
+            type="submit"
+            className="w-full p-3 border-none bg-[#007bff] text-white text-lg cursor-pointer rounded-sm"
+          >
             Sign Up
           </button>
 
-          <p className="existing-account">
-            Already have an account? <Link to={"/signin"}>Sign In</Link>
+          <p className="mt-4 text-sm w-full text-right">
+            Already have an account?{" "}
+            <Link to="/signin" className="text-blue-600 hover:underline">
+              Sign In
+            </Link>
           </p>
         </form>
       </div>
-
-      {/* Right side - Image */}
-      <div
-        className="signup-image"
-        style={{
-          backgroundColor: "white",
-          backgroundImage: "url('/images/login-image.png')",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center center",
-          backgroundSize: "50%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      ></div>
     </div>
   );
 };

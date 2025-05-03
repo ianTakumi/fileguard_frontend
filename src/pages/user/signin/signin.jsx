@@ -1,5 +1,4 @@
 import React from "react";
-import "./signin.css";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import {
@@ -10,6 +9,7 @@ import {
 } from "../../../utils/Helpers";
 import client from "../../../utils/client";
 import { useNavigate } from "react-router-dom";
+
 const SignIn = () => {
   const navigate = useNavigate();
   const {
@@ -61,20 +61,12 @@ const SignIn = () => {
     console.error(errors);
   };
 
-  const handleGoHome = () => {
-    navigate("/");
-  };
-
-  const handleResetPasswordBtn = () => {
-    navigate("/reset-password");
-  };
-
   return (
-    <div className="signin-container">
-      <div className="signin-form">
+    <div className="flex h-screen">
+      <div className="flex-1 flex-col items-center p-8 bg-[#fff]">
         <div
-          className="logo flex justify-center items-center flex-col cursor-pointer"
-          onClick={handleGoHome}
+          className=" mb-16 text-2xl font-bold flex justify-center items-center flex-col cursor-pointer"
+          onClick={() => navigate("/")}
         >
           <img
             src="/images/logo.png"
@@ -84,16 +76,16 @@ const SignIn = () => {
           <p>FileGuard</p>
         </div>
 
-        <form onSubmit={handleSubmit(onValid, onInvalid)}>
+        <form onSubmit={handleSubmit(onValid, onInvalid)} className="w-full">
           <div className="mb-4">
-            <label>Username*</label>
+            <label className="text-sm mb-2 text-[#555]">Username*</label>
             <input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              className={`${getBorderColor("username", errors, touchedFields)}`}
-              {...register("username", {
-                required: "Username is required",
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              className="w-full p-2 mb-4 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {...register("email", {
+                required: "Email is required",
               })}
             />
             {errors.username && (
@@ -101,12 +93,12 @@ const SignIn = () => {
             )}
           </div>
 
-          <label>Password*</label>
+          <label className="text-sm mb-2 text-[#555]">Password*</label>
           <input
             id="password"
             type="password"
             placeholder="Min. of 8 characters"
-            className={`${getBorderColor("password", errors, touchedFields)}`}
+            className="w-full p-2 mb-4 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             {...register("password", {
               required: "Password is required",
               minLength: {
@@ -119,7 +111,7 @@ const SignIn = () => {
             <p className="error-message">{errors.password.message}</p>
           )}
 
-          <div className="form-options flex flex-row-reverse">
+          <div className="form-options flex flex-row-reverse justify-between items-center mb-4">
             <Link
               to="/reset-password"
               className="cursor-pointer hover:underline"
@@ -128,29 +120,24 @@ const SignIn = () => {
             </Link>
           </div>
 
-          <button type="submit" className="signin-button">
+          <button
+            type="submit"
+            className="w-full p-3 border-none bg-[#007bff] text-white text-lg cursor-pointer rounded-sm"
+          >
             Sign In
           </button>
 
-          <p className="new-account">
-            Don’t have an account yet? <Link to={"/signup"}>New Account</Link>
+          <p className="text-sm mt-4 text-right w-full">
+            Don’t have an account yet?{" "}
+            <Link
+              to="/signup"
+              className="text-blue-600 hover:text-blue-800 font-medium underline"
+            >
+              New Account
+            </Link>
           </p>
         </form>
       </div>
-
-      <div
-        className="signin-image"
-        style={{
-          backgroundColor: "white",
-          backgroundImage: "url('/images/login-image.png')",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center center",
-          backgroundSize: "50%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      ></div>
     </div>
   );
 };
