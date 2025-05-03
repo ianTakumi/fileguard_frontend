@@ -1,13 +1,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import {
-  notifyError,
-  notifySuccess,
-  getBorderColor,
-  authenticate,
-} from "../../../utils/Helpers";
-import client from "../../../utils/client";
+import { notifyError, notifySuccess, authenticate } from "../../utils/Helpers";
+import client from "../../utils/client";
 import { useNavigate } from "react-router-dom";
 
 const SignIn = () => {

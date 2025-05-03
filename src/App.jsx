@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Homepage from "./pages/user/Home/Home";
 import HomeLayout from "./components/User/layout";
 import ContactPage from "./pages/user/Contact/Contact";
-import AboutPage from "./pages/user/About/About";
+import AboutPage from "./pages/user/About";
 import ResetPasswordPage from "./pages/user/ResetPassword";
 
 // Pages for authenticated user
@@ -21,8 +21,8 @@ import AuthSharedPage from "./pages/user/Auth/Shared";
 import AdminLayout from "./components/Admin/Layout";
 import AdminHomePage from "./pages/admin/index";
 import UsersPage from "./pages/admin/Users";
-import SignIn from "./pages/user/signin/signin";
-import SignUp from "./pages/user/signup/signup";
+import SignIn from "./pages/user/signin";
+import SignUp from "./pages/user/signup";
 import EmailAdmin from "./pages/admin/Email";
 import ProfileAdmin from "./pages/admin/Profile";
 import ContactAdminPages from "./pages/admin/Contact";

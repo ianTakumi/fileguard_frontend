@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from "react";
-import client from "../../../utils/client";
+import client from "../../utils/client";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import {
-  notifyError,
-  notifySuccess,
-  getBorderColor,
-  authenticate,
-} from "../../../utils/Helpers";
+import { notifyError, notifySuccess, authenticate } from "../../utils/Helpers";
 
 const SignUp = () => {
   const [isUsernameUnique, setIsUsernameUnique] = useState(true);
   const [isEmailUnique, setIsEmailUnique] = useState(true);
   const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
