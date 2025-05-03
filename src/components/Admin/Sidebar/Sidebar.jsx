@@ -1,20 +1,18 @@
 import React, { useState } from "react";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GroupIcon from "@mui/icons-material/Group";
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import FastfoodIcon from "@mui/icons-material/Fastfood";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 import { Link, useNavigate } from "react-router-dom";
-import { logout } from "../../../utils/Helpers";
 import client from "../../../utils/client";
 import PhoneIcon from "@mui/icons-material/Phone";
 import Swal from "sweetalert2";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser, clearUser } from "../../../redux/slices/userSlice";
+
 const Sidebar = ({ isMinimized }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [hovered, setHovered] = useState(null);
   const [selected, setSelected] = useState("dashboard");
   const [expanded, setExpanded] = useState({
@@ -45,20 +43,7 @@ const Sidebar = ({ isMinimized }) => {
     });
 
     if (result.isConfirmed) {
-      try {
-        await client.post(`${process.env.REACT_APP_API_LINK}/logout/`);
-        logout();
-        navigate("/");
-
-        Swal.fire(
-          "Logged Out!",
-          "You have been logged out successfully.",
-          "success"
-        );
-      } catch (error) {
-        // Handle logout failure
-        Swal.fire("Error", "Failed to log out. Please try again.", "error");
-      }
+      dispatch(clearUser());
     }
   };
 

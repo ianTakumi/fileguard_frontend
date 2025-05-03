@@ -2,15 +2,14 @@ import React, { useState } from "react";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getUser, formatDate, getProfile } from "../../utils/Helpers";
 import ProfileModal from "../../components/Admin/Modal/Profile";
 import ChangePasswordModal from "../../components/Admin/Modal/ChangePasswordModal";
 import { useNavigate } from "react-router-dom";
 const Profile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const user = getUser();
-  const profile = getProfile();
+  // const user = getUser();
+  // const profile = getProfile();
   const navigate = useNavigate();
   const handleEditProfile = () => {
     setIsModalOpen(true);

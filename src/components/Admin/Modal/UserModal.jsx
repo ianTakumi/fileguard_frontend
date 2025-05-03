@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { getBorderColor, getUser } from "../../../utils/Helpers";
 import client from "../../../utils/client";
+
 const UserModal = ({
   onClose,
   notifySuccess,
@@ -12,7 +12,7 @@ const UserModal = ({
 }) => {
   const [isUsernameUnique, setIsUsernameUnique] = useState(true);
   const [isEmailUnique, setIsEmailUnique] = useState(true);
-  const user = getUser();
+  // const user = getUser();
   const checkEmail = async (email) => {
     try {
       const response = await fetch("/api/check-email", {
@@ -163,11 +163,7 @@ const UserModal = ({
             <input
               id="fname"
               type="text"
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14 ${getBorderColor(
-                "fname",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14`}
               {...register("fname", { required: "First Name is required" })}
             />
             {errors.fname && (
@@ -183,11 +179,7 @@ const UserModal = ({
             <input
               id="lname"
               type="text"
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14 ${getBorderColor(
-                "lname",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14`}
               {...register("lname", { required: "Last Name is required" })}
             />
             {errors.lname && (
@@ -204,11 +196,7 @@ const UserModal = ({
             <input
               id="username"
               type="text"
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14 ${getBorderColor(
-                "username",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14`}
               {...register("username", { required: "Username is required" })}
             />
             {errors.username && (
@@ -242,11 +230,7 @@ const UserModal = ({
                   message: "Please enter a valid email",
                 },
               })}
-              className={`w-full px-3 py-2 border  border-gray-300 rounded-md h-14 ${getBorderColor(
-                "email",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border  border-gray-300 rounded-md h-14`}
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
@@ -267,11 +251,7 @@ const UserModal = ({
             <input
               id="password"
               type="password"
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14 ${getBorderColor(
-                "password",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md h-14`}
               {...register("password", { required: "Password is required" })}
             />
             {errors.password && (

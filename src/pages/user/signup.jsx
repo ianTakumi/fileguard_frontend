@@ -3,12 +3,15 @@ import client from "../../utils/client";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { notifyError, notifySuccess, authenticate } from "../../utils/Helpers";
+import { notifyError, notifySuccess } from "../../utils/Helpers";
+import { useDispatch } from "react-redux";
+import { setUser } from "../../redux/slices/userSlice";
 
 const SignUp = () => {
   const [isUsernameUnique, setIsUsernameUnique] = useState(true);
   const [isEmailUnique, setIsEmailUnique] = useState(true);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -21,32 +24,13 @@ const SignUp = () => {
     mode: "onChange",
   });
 
-  const username = watch("username");
   const email = watch("email");
-
   useEffect(() => {
-    const checkUniqueness = async () => {
-      if (username) {
-        const response = await client.get("/check-unique/", {
-          params: { username },
-        });
-        setIsUsernameUnique(response.data.is_username_unique);
-        if (!response.data.is_username_unique) {
-          setError("username", {
-            type: "manual",
-            message: "Username already exists",
-          });
-        }
-      }
-    };
-
     const checkEmailUniqueness = async () => {
       if (email) {
-        const response = await client.get("/check-unique/", {
-          params: { email },
-        });
+        const response = await client.get(`/auth/check-unique-email/${email}`);
         setIsEmailUnique(response.data.is_email_unique);
-        if (!response.data.is_email_unique) {
+        if (response.status === 409) {
           setError("email", {
             type: "manual",
             message: "Email already exists",
@@ -55,17 +39,22 @@ const SignUp = () => {
       }
     };
 
-    checkUniqueness();
     checkEmailUniqueness();
-  }, [username, email, setError]);
+  }, [email, setError]);
 
   const onSubmit = async (data) => {
+    console.log("Form data:", data);
     try {
-      // Submit form data to API endpoint
-      await client.post("/register/", data).then((response) => {
+      await client.post("/auth/register/", data).then((response) => {
         reset();
         notifySuccess("Registration successful!");
-        authenticate(response.data);
+        dispatch(
+          setUser(
+            response.data.user,
+            response.data.accessToken,
+            response.data.refreshToken
+          )
+        );
         navigate("/drive");
       });
     } catch (error) {

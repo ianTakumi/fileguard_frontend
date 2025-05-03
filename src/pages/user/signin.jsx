@@ -1,12 +1,15 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { notifyError, notifySuccess, authenticate } from "../../utils/Helpers";
+import { notifyError, notifySuccess } from "../../utils/Helpers";
 import client from "../../utils/client";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setUser } from "../../redux/slices/userSlice";
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
@@ -16,44 +19,38 @@ const SignIn = () => {
     mode: "onChange",
   });
 
-  const onValid = async (data) => {
+  const onSubmit = async (data) => {
     try {
-      const url = `${process.env.REACT_APP_API_LINK}/login/`;
-      const response = await client
-        .post(url, data, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then((response) => {
-          const data = response.data;
-          const user = data.user;
-          notifySuccess("Sign-in successful!");
-          reset();
-          authenticate(response.data);
+      await client.post("/auth/login", data).then((res) => {
+        if (res.status === 200) {
+          notifySuccess("Login successful!");
+          dispatch(
+            setUser(res.data.user, res.data.accessToken, res.data.refreshToken)
+          );
+          navigate("/admin");
+        } else if (res.status === 400) {
+          notifyError("All fields are required");
+        } else if (res.status === 401) {
+          notifyError("Invalid email or password");
+        }
+      });
+    } catch (err) {
+      if (err.response) {
+        const status = err.response.status;
 
-          if (user.is_superuser) {
-            navigate("/admin");
-          } else {
-            navigate("/drive");
-          }
-        })
-        .catch((error) => {
-          if (error.response) {
-            const message = error.response.data[0];
-            notifyError(message);
-            console.log(message);
-          }
-        });
-    } catch (error) {
-      notifyError("Sign-in failed. Please check your credentials.");
-      console.error(error);
+        if (status === 400) {
+          notifyError("All fields are required");
+        } else if (status === 401) {
+          notifyError("Invalid email or password");
+        } else {
+          notifyError("An error occurred. Please try again later.");
+        }
+      } else {
+        notifyError("Unable to connect to server");
+      }
+
+      console.error("Error during login:", err);
     }
-  };
-
-  const onInvalid = (errors) => {
-    notifyError("Please fix the errors before submitting.");
-    console.error(errors);
   };
 
   return (
@@ -71,40 +68,42 @@ const SignIn = () => {
           <p>FileGuard</p>
         </div>
 
-        <form onSubmit={handleSubmit(onValid, onInvalid)} className="w-full">
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full">
           <div className="mb-4">
-            <label className="text-sm mb-2 text-[#555]">Username*</label>
+            <label className="text-base mb-4 text-[#555]">Username</label>
             <input
               id="email"
               type="email"
               placeholder="Enter your email"
-              className="w-full p-2 mb-4 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2  border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               {...register("email", {
                 required: "Email is required",
               })}
             />
-            {errors.username && (
-              <p className="text-red-500">{errors.username.message}</p>
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
             )}
           </div>
 
-          <label className="text-sm mb-2 text-[#555]">Password*</label>
-          <input
-            id="password"
-            type="password"
-            placeholder="Min. of 8 characters"
-            className="w-full p-2 mb-4 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            {...register("password", {
-              required: "Password is required",
-              minLength: {
-                value: 8,
-                message: "Password must be at least 8 characters long",
-              },
-            })}
-          />
-          {errors.password && (
-            <p className="error-message">{errors.password.message}</p>
-          )}
+          <div className="mb-4">
+            <label className="text-base mb-2 text-[#555]">Password</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Min. of 8 characters"
+              className="w-full p-2 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 8,
+                  message: "Password must be at least 8 characters long",
+                },
+              })}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm">{errors.password.message}</p>
+            )}
+          </div>
 
           <div className="form-options flex flex-row-reverse justify-between items-center mb-4">
             <Link

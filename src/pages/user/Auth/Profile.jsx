@@ -1,12 +1,5 @@
 import React, { useState, useRef } from "react";
-import {
-  getProfile,
-  getUser,
-  notifyError,
-  notifySuccess,
-  setProfile,
-  setUser,
-} from "../../../utils/Helpers";
+import { notifyError, notifySuccess } from "../../../utils/Helpers";
 import ChangePassword from "../../../components/User/Auth/Modals/ChangePassword";
 import client from "../../../utils/client";
 import { useNavigate } from "react-router-dom";
@@ -14,8 +7,6 @@ import { useForm } from "react-hook-form";
 
 const Profile = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const user = getUser();
-  const [profile, setProfileState] = useState(getProfile());
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 

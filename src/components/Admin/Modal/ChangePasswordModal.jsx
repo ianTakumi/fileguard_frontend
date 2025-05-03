@@ -1,7 +1,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import client from "../../../utils/client";
-import { getUser, notifyError, getBorderColor } from "../../../utils/Helpers";
+import { notifyError } from "../../../utils/Helpers";
 import { ToastContainer } from "react-toastify";
 
 const ChangePassword = ({ onClose }) => {
@@ -12,7 +12,7 @@ const ChangePassword = ({ onClose }) => {
   } = useForm();
 
   const onSubmit = (data) => {
-    const user = getUser();
+    // const user = getUser();
     data.user = user;
     console.log(data);
 
@@ -53,11 +53,7 @@ const ChangePassword = ({ onClose }) => {
             <input
               id="current_password"
               type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "current_password",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border rounded-md`}
               {...register("current_password", {
                 required: "Current Password is required",
               })}
@@ -75,11 +71,7 @@ const ChangePassword = ({ onClose }) => {
             <input
               id="new_password"
               type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "new_password",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border rounded-md`}
               {...register("new_password", {
                 required: "New Password is required",
               })}
@@ -100,11 +92,7 @@ const ChangePassword = ({ onClose }) => {
             <input
               id="confirm_password"
               type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "confirm_password",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border rounded-md`}
               {...register("confirm_password", {
                 required: "Confirm Password is required",
               })}

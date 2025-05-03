@@ -5,8 +5,8 @@ import client from "../../../../utils/client";
 import {
   notifyError,
   notifySuccess,
-  logout,
-  getProfile,
+  // logout,
+  // getProfile,
 } from "../../../../utils/Helpers";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -14,7 +14,7 @@ import { IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 
 const Navbar = () => {
-  const profile = getProfile();
+  // const profile = getProfile();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false); // State for mobile menu
@@ -31,33 +31,33 @@ const Navbar = () => {
     navigate("/drive/profile");
   };
 
-  const handleLogoutClick = () => {
-    const url = `${process.env.REACT_APP_API_LINK}/logout/`;
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You will be logged out of your account!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, log me out!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await client.post(url, { withCredentials: true }).then((response) => {
-            if (response.status === 200) {
-              notifySuccess("Logout Successfully");
-              logout();
-              navigate("/signin");
-            }
-          });
-        } catch (err) {
-          notifyError("Something went wrong.");
-          console.error(err);
-        }
-      }
-    });
-  };
+  // const handleLogoutClick = () => {
+  //   const url = `${process.env.REACT_APP_API_LINK}/logout/`;
+  //   Swal.fire({
+  //     title: "Are you sure?",
+  //     text: "You will be logged out of your account!",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonColor: "#3085d6",
+  //     cancelButtonColor: "#d33",
+  //     confirmButtonText: "Yes, log me out!",
+  //   }).then(async (result) => {
+  //     if (result.isConfirmed) {
+  //       try {
+  //         await client.post(url, { withCredentials: true }).then((response) => {
+  //           if (response.status === 200) {
+  //             notifySuccess("Logout Successfully");
+  //             logout();
+  //             navigate("/signin");
+  //           }
+  //         });
+  //       } catch (err) {
+  //         notifyError("Something went wrong.");
+  //         console.error(err);
+  //       }
+  //     }
+  //   });
+  // };
 
   return (
     <>

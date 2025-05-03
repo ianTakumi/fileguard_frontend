@@ -4,7 +4,7 @@ import client from "../../../../utils/client";
 import {
   notifySuccess,
   notifyError,
-  getBorderColor,
+  // getBorderColor,
 } from "../../../../utils/Helpers";
 import { ToastContainer } from "react-toastify";
 
@@ -47,11 +47,7 @@ const ChangePassword = ({ onClose, fileId }) => {
             <input
               id="username"
               type="text"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "username",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border rounded-md`}
               {...register("username", {
                 required: "Current Password is required",
               })}

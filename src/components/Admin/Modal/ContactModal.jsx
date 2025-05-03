@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import Select from "react-select"; // Importing react-select
-import { getUser, notifySuccess, notifyError } from "../../../utils/Helpers";
+import { notifySuccess, notifyError } from "../../../utils/Helpers";
 import { ToastContainer } from "react-toastify";
 
 const ContactModal = ({ onClose, open, contact, onSuccess }) => {
@@ -25,7 +25,7 @@ const ContactModal = ({ onClose, open, contact, onSuccess }) => {
   }, [contact, reset]);
 
   const onSubmit = (data) => {
-    const user = getUser();
+    // const user = getUser();
     data.user = user;
     console.log(data);
 

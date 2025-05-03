@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import Widget from "../../components/Admin/Widget";
 import BarChart from "../../components/Admin/Chart/BarChart";
 import LineChart from "../../components/Admin/Chart/LineChart";
 import PieChart from "../../components/Admin/Chart/PieChart";
 import Map from "../../components/Admin/Map";
-import { notifySuccess, notifyError, getUser } from "../../utils/Helpers";
+import { notifySuccess, notifyError } from "../../utils/Helpers";
 import client from "../../utils/client";
+import { useSelector } from "react-redux";
 
 const Home = () => {
+  const user = useSelector((state) => state.user.user);
   const loggedIn = useSelector((state) => state.user.loggedIn);
-  const user = getUser();
+
   const [userCount, setUserCount] = useState(0);
   const [contactCount, setContactCount] = useState(0);
   const [fileCount, setFileCount] = useState(0);
@@ -18,36 +19,42 @@ const Home = () => {
 
   const getNumberofUsers = async () => {
     try {
-      const response = await client.get(
-        `${process.env.REACT_APP_API_LINK}/user-count`,
-        { withCredentials: true }
-      );
-      setUserCount(response.data.user_count);
+      await client.get(`/users/count`).then((res) => {
+        if (res.status === 200) {
+          setUserCount(res.data.user_count);
+        }
+      });
     } catch (err) {
       console.error("Error fetching user count:", err);
+      notifyError("Error fetching count of users");
     }
   };
 
   const getNumberOfContact = async () => {
     try {
-      await client
-        .get(`${process.env.REACT_APP_API_LINK}/contact-count/`, {
-          withCredentials: true,
-        })
-        .then((response) => {
-          setContactCount(response.data.contact_count);
-        })
-        .catch((err) => {
-          notifyError("Error fetching number of contacts");
-          console.error("Error fetching number of contacts:", err);
-        });
+      await client.get("/contacts/count").then((res) => {
+        if (res.status === 200) {
+          setContactCount(res.data.contact_count);
+        }
+      });
     } catch (err) {
+      console.error("Error fetching user count:", err);
       notifyError("Error fetching number of contacts");
-      console.error("Error fetching number of contacts:", err);
     }
   };
 
-  const getNumberOfFiles = async () => {};
+  const getNumberOfFiles = async () => {
+    try {
+      await client.get("/files/count").then((res) => {
+        if (res.status === 200) {
+          setFileCount(res.data.file_count);
+        }
+      });
+    } catch (err) {
+      console.error("Error fetching user count:", err);
+      notifyError("Error fetching number of files");
+    }
+  };
 
   useEffect(() => {
     getNumberofUsers();

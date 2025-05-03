@@ -2,9 +2,9 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import client from "../../../../utils/client";
 import {
-  getUser,
+  // getUser,
   notifyError,
-  getBorderColor,
+  // getBorderColor,
 } from "../../../../utils/Helpers";
 import { ToastContainer } from "react-toastify";
 
@@ -15,32 +15,32 @@ const ChangePassword = ({ onClose }) => {
     formState: { errors, touchedFields },
   } = useForm();
 
-  const onSubmit = (data) => {
-    const user = getUser();
-    data.user = user;
-    console.log(data);
+  // const onSubmit = (data) => {
+  //   const user = getUser();
+  //   data.user = user;
+  //   console.log(data);
 
-    client
-      .put(`${process.env.REACT_APP_API_LINK}/change-password/`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        if (error.response) {
-          const errorMessage = error.response.data.msg;
-          console.log(errorMessage);
-          notifyError(errorMessage);
-        } else {
-          console.log(error.message);
-          notifyError(error.message);
-        }
-      });
-  };
+  //   client
+  //     .put(`${process.env.REACT_APP_API_LINK}/change-password/`, data, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       withCredentials: true,
+  //     })
+  //     .then((response) => {
+  //       console.log(response);
+  //     })
+  //     .catch((error) => {
+  //       if (error.response) {
+  //         const errorMessage = error.response.data.msg;
+  //         console.log(errorMessage);
+  //         notifyError(errorMessage);
+  //       } else {
+  //         console.log(error.message);
+  //         notifyError(error.message);
+  //       }
+  //     });
+  // };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
@@ -57,11 +57,7 @@ const ChangePassword = ({ onClose }) => {
             <input
               id="current_password"
               type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "current_password",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border rounded-md`}
               {...register("current_password", {
                 required: "Current Password is required",
               })}
@@ -79,11 +75,7 @@ const ChangePassword = ({ onClose }) => {
             <input
               id="new_password"
               type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "new_password",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border rounded-md`}
               {...register("new_password", {
                 required: "New Password is required",
               })}
@@ -104,11 +96,7 @@ const ChangePassword = ({ onClose }) => {
             <input
               id="confirm_password"
               type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "confirm_password",
-                errors,
-                touchedFields
-              )}`}
+              className={`w-full px-3 py-2 border rounded-md`}
               {...register("confirm_password", {
                 required: "Confirm Password is required",
               })}

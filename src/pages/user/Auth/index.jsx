@@ -3,7 +3,7 @@ import React from "react";
 const index = () => {
   return (
     <div>
-      <div></div>
+      <h1>Hi</h1>
     </div>
   );
 };

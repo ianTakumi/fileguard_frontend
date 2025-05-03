@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import client from "../../../utils/client";
-import { notifyError, notifySuccess } from "../../../utils/Helpers";
+import client from "../../utils/client";
+import { notifyError, notifySuccess } from "../../utils/Helpers";
 
 const Contact = () => {
   const {
