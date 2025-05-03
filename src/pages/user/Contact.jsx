@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import "./Contact.scss";
 import client from "../../../utils/client";
 import { notifyError, notifySuccess } from "../../../utils/Helpers";
 
@@ -44,39 +43,51 @@ const Contact = () => {
         </div>
       </div>
 
-      <div className="contact-info">
-        <div className="info-item">
-          <img src="/images/phone-icon.jpg" alt="Phone Icon" className="icon" />
+      <div className="flex justify-around items-center p-5 bg-[#f0f0f0]">
+        <div className="flex flex-col items-center text-center w-1/4">
+          <img
+            src="/images/phone-icon.jpg"
+            alt="Phone Icon"
+            className="w-12 h-12 bg-[#4285f4] rounded-[50%] p-2.5 mb-2.5"
+          />
           <p>
             <strong>Phone</strong>
             <br />
             09123456789
           </p>
         </div>
-        <div className="info-item">
-          <img src="/images/email-icon.jpg" alt="Email Icon" className="icon" />
-          <p>
-            <strong>Email</strong>
+        <div className="flex flex-col items-center text-center w-1/4">
+          <img
+            src="/images/email-icon.jpg"
+            alt="Email Icon"
+            className="w-12 h-12 bg-[#4285f4] rounded-[50%] p-2.5 mb-2.5"
+          />
+          <p className="text-lg m-0 leading-relaxed">
+            <strong className="block font-bold text-[1.1rem]">Email</strong>
             <br />
             fileguard@info.com
           </p>
         </div>
-        <div className="info-item">
+        <div className="flex flex-col items-center text-center w-1/4">
           <img
             src="/images/address-icon.jpg"
             alt="Address Icon"
-            className="icon"
+            className="w-12 h-12 bg-[#4285f4] rounded-[50%] p-2.5 mb-2.5"
           />
-          <p>
-            <strong>Address</strong>
+          <p className="text-lg m-0 leading-relaxed">
+            <strong className="block font-bold text-[1.1rem]">Address</strong>
             <br />
             Western Bicutan, Taguig, Metro Manila
           </p>
         </div>
-        <div className="info-item">
-          <img src="/images/hours-icon.jpg" alt="Hours Icon" className="icon" />
-          <p>
-            <strong>Hours</strong>
+        <div className="flex flex-col items-center text-center w-1/4">
+          <img
+            src="/images/hours-icon.jpg"
+            alt="Hours Icon"
+            className="w-12 h-12 bg-[#4285f4] rounded-[50%] p-2.5 mb-2.5"
+          />
+          <p className="text-lg m-0 leading-relaxed">
+            <strong className="block font-bold text-[1.1rem]">Hours</strong>
             <br />
             Monday - Sunday
             <br />
@@ -85,7 +96,7 @@ const Contact = () => {
         </div>
       </div>
 
-      <div className="contact-form">
+      <div className="max-w-[600px] my-10 mx-auto px-5 rounded-lg bg-[rgba(255,255,255,0.8)]">
         <div className="flex items-center mb-5">
           <hr className="flex-1 mr-[10px] border-0 border-t border-[#ccc]" />
           <span className="font-bold text-[#4285f4] text-2xl">
@@ -101,19 +112,21 @@ const Contact = () => {
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="input-group">
+          <div className="flex gap-2.5 mb-5">
             <input
               type="text"
               placeholder="Your name*"
-              className="input-field"
+              className="flex-1 p-3 text-xl border border-[#ccc] rounded-lg focus:outline-none focus:border-[#4285f4]"
               {...register("name", { required: "Name is required" })}
             />
-            {errors.name && <p className="error">{errors.name.message}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm">{errors.name.message}</p>
+            )}
 
             <input
               type="email"
               placeholder="Your E-mail*"
-              className="input-field"
+              className="flex-1 p-3 text-xl border border-[#ccc] rounded-lg focus:outline-none focus:border-[#4285f4]"
               {...register("email", {
                 required: "Email is required",
                 pattern: {
@@ -122,29 +135,34 @@ const Contact = () => {
                 },
               })}
             />
-            {errors.email && <p className="error">{errors.email.message}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
+            )}
           </div>
 
           <textarea
             placeholder="Your message*"
-            className="textarea-field"
+            className="flex-1 p-3 text-xl border border-[#ccc] rounded-lg focus:outline-none focus:border-[#4285f4]"
             {...register("message", { required: "Message is required" })}
           ></textarea>
-          {errors.message && <p className="error">{errors.message.message}</p>}
+          {errors.message && (
+            <p className="text-red-500 text-sm">{errors.message.message}</p>
+          )}
 
-          <div className="checkbox-group">
+          <div className="flex items-center text-[1rem] text-[#333] mb-5">
             <input
               type="checkbox"
               id="consent"
               {...register("consent", {
                 required: "You must agree to data collection",
               })}
+              className="mr-2.5 accent-[#4285f4]"
             />
             <label htmlFor="consent">
               I agree that my submitted data is being collected and stored.
             </label>
             {errors.consent && (
-              <p className="error">{errors.consent.message}</p>
+              <p className="text-red-500 text-sm">{errors.consent.message}</p>
             )}
           </div>
 

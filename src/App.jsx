@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Pages for the home pages and layout
 import Homepage from "./pages/user/Home/Home";
 import HomeLayout from "./components/User/layout";
-import ContactPage from "./pages/user/Contact/Contact";
+import ContactPage from "./pages/user/Contact";
 import AboutPage from "./pages/user/About";
 import ResetPasswordPage from "./pages/user/ResetPassword";
 
