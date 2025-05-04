@@ -2,22 +2,20 @@ import React, { useState } from "react";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import client from "../../../../utils/client";
-import {
-  notifyError,
-  notifySuccess,
-  // logout,
-  // getProfile,
-} from "../../../../utils/Helpers";
+import { notifyError, notifySuccess } from "../../../../utils/Helpers";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser } from "../../../../redux/slices/userSlice";
 
 const Navbar = () => {
-  // const profile = getProfile();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false); // State for mobile menu
+  const [menuOpen, setMenuOpen] = useState(false);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user.user);
 
   const toggleDropdown = () => {
     setDropdownOpen((prev) => !prev);
@@ -31,33 +29,29 @@ const Navbar = () => {
     navigate("/drive/profile");
   };
 
-  // const handleLogoutClick = () => {
-  //   const url = `${process.env.REACT_APP_API_LINK}/logout/`;
-  //   Swal.fire({
-  //     title: "Are you sure?",
-  //     text: "You will be logged out of your account!",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#3085d6",
-  //     cancelButtonColor: "#d33",
-  //     confirmButtonText: "Yes, log me out!",
-  //   }).then(async (result) => {
-  //     if (result.isConfirmed) {
-  //       try {
-  //         await client.post(url, { withCredentials: true }).then((response) => {
-  //           if (response.status === 200) {
-  //             notifySuccess("Logout Successfully");
-  //             logout();
-  //             navigate("/signin");
-  //           }
-  //         });
-  //       } catch (err) {
-  //         notifyError("Something went wrong.");
-  //         console.error(err);
-  //       }
-  //     }
-  //   });
-  // };
+  const handleLogoutClick = async () => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of your account!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, log me out!",
+    });
+
+    if (result.isConfirmed) {
+      await client
+        .post("/auth/logout", {}, { withCredentials: true })
+        .then((res) => {
+          if (res.status === 200) {
+            dispatch(clearUser());
+            notifySuccess("Logout Successfully");
+            navigate("/signin");
+          }
+        });
+    }
+  };
 
   return (
     <>
@@ -108,7 +102,7 @@ const Navbar = () => {
           <HelpOutlineIcon style={{ color: "gray", cursor: "pointer" }} />
           <div style={{ position: "relative" }}>
             <img
-              src={profile.url}
+              src={user.profile.url}
               alt="User Avatar"
               style={{
                 width: "32px",
