@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { jwtDecode } from "jwt-decode";
-import client from "../../utils/client"; // Your API client utility
-import { notifyError, notifySuccess } from "../../utils/Helpers"; // Notification utility
+import client from "../../utils/client";
+import { notifyError, notifySuccess } from "../../utils/Helpers";
 import { useNavigate } from "react-router-dom";
 
 const NewPassword = () => {

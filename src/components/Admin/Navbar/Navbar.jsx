@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Menu } from "@mui/icons-material";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
@@ -6,55 +6,67 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { useNavigate, NavLink } from "react-router-dom";
 import Swal from "sweetalert2";
+import { useSelector, useDispatch } from "react-redux";
+import { clearUser } from "../../../redux/slices/userSlice";
 import client from "../../../utils/client";
-import { useSelector } from "react-redux";
 
 const Navbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
+  console.log("User data in Navbar:", user); // Log user data for debugging
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  // const user = getUser();
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
 
-  // const handleLogout = async () => {
-  //   const result = await Swal.fire({
-  //     title: "Are you sure?",
-  //     text: "You will be logged out of your account!",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#3085d6",
-  //     cancelButtonColor: "#d33",
-  //     confirmButtonText: "Yes, log me out!",
-  //   });
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of your account!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, log me out!",
+    });
 
-  //   if (result.isConfirmed) {
-  //     try {
-  //       await client.post(`${process.env.REACT_APP_API_LINK}/logout/`);
-  //       logout();
-  //       navigate("/");
+    if (result.isConfirmed) {
+      try {
+        await client
+          .post("/auth/logout", {}, { withCredentials: true })
+          .then((res) => {
+            if (res.status === 200) {
+              dispatch(clearUser());
+              navigate("/");
 
-  //       Swal.fire(
-  //         "Logged Out!",
-  //         "You have been logged out successfully.",
-  //         "success"
-  //       );
-  //     } catch (error) {
-  //       // Handle logout failure
-  //       Swal.fire("Error", "Failed to log out. Please try again.", "error");
-  //     }
-  //   }
+              Swal.fire(
+                "Logged Out!",
+                "You have been logged out successfully.",
+                "success"
+              );
+            }
+          });
+      } catch (error) {
+        Swal.fire("Error", "Failed to log out. Please try again.", "error");
+      }
+    }
 
-  //   // Close the profile dropdown after logout
-  //   setIsProfileDropdownOpen(false);
-  // };
+    // Close the profile dropdown after logout
+    setIsProfileDropdownOpen(false);
+  };
 
   const closeProfileDropdown = () => {
     setIsProfileDropdownOpen(false);
   };
+
+  if (!user) {
+    return (
+      <nav className="text-center text-gray-600 py-4">Loading user...</nav>
+    );
+  }
 
   return (
     <nav
@@ -89,7 +101,7 @@ const Navbar = ({ toggleSidebar }) => {
                 alt="User Profile Pic"
                 className="rounded-full w-10 h-10 object-cover"
               />
-              <span>{user.first_name + " " + user.last_name}</span>
+              <span>{user.name}</span>
               <KeyboardArrowDownOutlinedIcon style={{ fontSize: "15px" }} />
             </button>
             {isProfileDropdownOpen && (

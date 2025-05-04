@@ -79,7 +79,7 @@ const Home = () => {
             &times;
           </button>
           <h2 className="text-xl font-semibold">
-            Welcome, {user ? user.first_name + " " + user.last_name : "User"}!
+            Welcome, {user ? user.name : "User"}!
           </h2>
           <p className="mt-2">
             We are glad to have you on board. This is your admin dashboard where

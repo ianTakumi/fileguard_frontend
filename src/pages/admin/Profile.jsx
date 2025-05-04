@@ -5,12 +5,14 @@ import "react-toastify/dist/ReactToastify.css";
 import ProfileModal from "../../components/Admin/Modal/Profile";
 import ChangePasswordModal from "../../components/Admin/Modal/ChangePasswordModal";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
 const Profile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  // const user = getUser();
-  // const profile = getProfile();
+  const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
+
   const handleEditProfile = () => {
     setIsModalOpen(true);
   };
@@ -63,15 +65,13 @@ const Profile = () => {
           <div className="flex items-center space-x-6">
             {/* Profile Image */}
             <img
-              src={profile.url}
+              src={user.profile.url}
               alt="Profile"
               className="rounded-full w-32 h-32 object-cover"
             />
             {/* User Details */}
             <div className="text-xl">
-              <h2 className="text-2xl font-semibold">
-                {user.first_name + " " + user.last_name}
-              </h2>
+              <h2 className="text-2xl font-semibold">{user.name}</h2>
               <p className="text-gray-600 mt-1">
                 {user?.email || "admin@example.com"}
               </p>
@@ -100,13 +100,7 @@ const Profile = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg text-gray-700">
             <p>
-              <strong>First Name:</strong> {user.first_name || "N/A"}
-            </p>
-            <p>
-              <strong>Last Name:</strong> {user.last_name || "N/A"}
-            </p>
-            <p>
-              <strong>Username:</strong> {user.username || "N/A"}
+              <strong>Name:</strong> {user.name || "N/A"}
             </p>
             <p>
               <strong>Email:</strong> {user?.email || "N/A"}

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import FilePondPluginFileEncode from "filepond-plugin-file-encode";
+import client from "../../utils/client";
 
 // Register the plugins for FilePond
 registerPlugin(FilePondPluginImagePreview, FilePondPluginFileEncode);
@@ -21,7 +21,6 @@ const Email = () => {
 
   // This function will handle the form submission
   const onSubmit = async (data) => {
-    console.log("Files being sent:", files);
     // Create a FormData object
     const formData = new FormData();
 
@@ -36,22 +35,18 @@ const Email = () => {
     });
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_LINK}/email-send`,
-        formData, // Send FormData
-        {
+      await client
+        .post("/email-send", formData, {
           headers: {
             "Content-Type": "multipart/form-data", // Use multipart/form-data
           },
           withCredentials: true,
-        }
-      );
-
-      if (response.status === 200) {
-        alert("Email sent successfully!");
-        reset(); // Reset the form
-        setFiles([]); // Clear the FilePond input
-      }
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            notifySuccess("Email sent successfully!");
+          }
+        });
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to send email.");
@@ -59,8 +54,8 @@ const Email = () => {
   };
 
   return (
-    <>
-      <h2 className="text-2xl font-semibold mb-4 mt-5">Send Email</h2>
+    <div className="container mx-auto  p-4">
+      <h2 className="text-2xl font-semibold mb-4 ">Send Email</h2>
       <div className="px-4 py-6 bg-white shadow-md rounded-lg">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex justify-between space-x-4">
@@ -135,7 +130,7 @@ const Email = () => {
           </button>
         </form>
       </div>
-    </>
+    </div>
   );
 };
 

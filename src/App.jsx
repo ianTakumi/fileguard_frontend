@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from "react-redux";
+import { clearUser, setUser } from "./redux/slices/userSlice";
+import client from "./utils/client";
 
 // Pages for the home pages and layout
 import Homepage from "./pages/user/Home/Home";
@@ -29,6 +32,35 @@ import ContactAdminPages from "./pages/admin/Contact";
 import NewPassword from "./pages/user/NewPassword";
 
 function App() {
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const refresh = async () => {
+      try {
+        const res = await client.post(
+          "/auth/refresh",
+          {},
+          { withCredentials: true }
+        );
+        if (res.status === 200) {
+          dispatch(setUser({ user: res.data.user }));
+          console.log("User data:", res.data.user);
+        }
+      } catch (err) {
+        console.log("Refresh token failed:", err);
+        dispatch(clearUser());
+      } finally {
+        setLoading(false); // ✅ stop loading regardless of success/fail
+      }
+    };
+
+    refresh();
+  }, [dispatch]);
+  if (loading) {
+    return <div className="text-center mt-10">Loading...</div>;
+  }
+
   return (
     <Router>
       <Routes>

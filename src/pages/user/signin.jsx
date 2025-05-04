@@ -21,19 +21,26 @@ const SignIn = () => {
 
   const onSubmit = async (data) => {
     try {
-      await client.post("/auth/login", data).then((res) => {
-        if (res.status === 200) {
-          notifySuccess("Login successful!");
-          dispatch(
-            setUser(res.data.user, res.data.accessToken, res.data.refreshToken)
-          );
-          navigate("/admin");
-        } else if (res.status === 400) {
-          notifyError("All fields are required");
-        } else if (res.status === 401) {
-          notifyError("Invalid email or password");
-        }
-      });
+      await client
+        .post("/auth/login", data, { withCredentials: true })
+        .then((res) => {
+          if (res.status === 200) {
+            notifySuccess("Login successful!");
+            dispatch(
+              setUser({
+                user: res.data.user,
+                accessToken: res.data.accessToken,
+                refreshToken: res.data.refreshToken,
+              })
+            );
+
+            navigate("/admin");
+          } else if (res.status === 400) {
+            notifyError("All fields are required");
+          } else if (res.status === 401) {
+            notifyError("Invalid email or password");
+          }
+        });
     } catch (err) {
       if (err.response) {
         const status = err.response.status;

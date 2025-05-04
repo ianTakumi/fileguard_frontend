@@ -13,9 +13,11 @@ const Contact = () => {
 
   const onSubmit = async (data) => {
     await client
-      .post("/contact/", data)
+      .post("/contacts/", data)
       .then((response) => {
-        notifySuccess("Sent Successfully");
+        if (response.status === 201) {
+          notifySuccess("Sent Successfully");
+        }
       })
       .catch((error) => {
         notifyError("Something went wrong, please try again");

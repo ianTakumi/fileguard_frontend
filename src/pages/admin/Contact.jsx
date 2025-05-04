@@ -14,9 +14,9 @@ const Contact = () => {
 
   const fetchContacts = async () => {
     await client
-      .get("/contact-list/")
+      .get("/contacts")
       .then((response) => {
-        setContacts(response.data);
+        setContacts(response.data.data);
       })
       .catch(() => {
         notifyError("Error fetching contacts");

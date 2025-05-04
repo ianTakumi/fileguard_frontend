@@ -1,7 +1,9 @@
 import axios from "axios";
+import store from "../redux/Store";
 
 const client = axios.create({
   baseURL: `${import.meta.env.VITE_API_LINK}`,
+  withCredentials: true, // Include credentials (cookies) in requests
   headers: {
     "Content-Type": "application/json",
   },
@@ -38,7 +40,10 @@ const client = axios.create({
 // Add a request interceptor to attach the access token to headers
 // client.interceptors.request.use(
 //   (config) => {
-//     const { accessToken } = getToken() || {};
+//     const state = store.getState();
+//     const accessToken = state.user.accessToken;
+
+//     console.log("Access Token:", accessToken);
 //     if (accessToken) {
 //       const cleanedToken = accessToken.replace(/^["']|["']$/g, "");
 //       config.headers["Authorization"] = `Bearer ${cleanedToken}`;

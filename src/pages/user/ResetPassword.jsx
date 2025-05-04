@@ -2,6 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import client from "../../utils/client";
 import { notifyError, notifySuccess } from "../../utils/Helpers";
+
 const ResetPassword = () => {
   const {
     register,
@@ -11,8 +12,9 @@ const ResetPassword = () => {
 
   const onSubmit = (data) => {
     console.log(data);
+
     client
-      .post(`${process.env.REACT_APP_API_LINK}/reset-password-request`, data)
+      .post(`/auth/reset-password-request`, data)
       .then((response) => {
         notifySuccess(response.data.message);
       })

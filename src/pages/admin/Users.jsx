@@ -6,10 +6,11 @@ import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import { notifyError, notifySuccess, formatDate } from "../../utils/Helpers";
 import UserModal from "../../components/Admin/Modal/UserModal";
-import axios from "axios";
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import NoAccountsIcon from "@mui/icons-material/NoAccounts";
+import client from "../../utils/client";
+
 const UsersPage = () => {
   const [users, setUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,28 +20,16 @@ const UsersPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchUsers = () => {
-    axios
-      .get(`${process.env.REACT_APP_API_LINK}/users`)
-      .then((response) => {
-        console.log(response.data);
-        setUsers(response.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching contacts:", err);
+    try {
+      client.get("/users").then((res) => {
+        if (res.status === 200) {
+          setUsers(res.data.data);
+        }
       });
-  };
-
-  // Open and close modal
-  const openModal = (user = null) => {
-    setSelectedUser(user);
-    setIsEditing(!!user); // If a user is passed, set editing to true
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setCurrentUser(null);
-    setIsEditing(false);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      notifyError("Error fetching users");
+    }
   };
 
   const handleMenuClick = (event, user) => {
@@ -53,122 +42,9 @@ const UsersPage = () => {
     // setSelectedUser(null);
   };
 
-  const handleEdit = () => {
-    openModal(selectedUser); // Your function to open the modal
-    handleMenuClose();
-  };
-
-  const handleUserChange = async () => {
-    try {
-      fetchUsers();
-    } catch (err) {
-      console.error("Error updating contact:", err);
-    }
-  };
-
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  const handleDeactivate = async (userID) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Deactivating this user will restrict their access. You can reactivate the account at any time.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, deactivate it!",
-      cancelButtonText: "Cancel",
-    });
-
-    if (result.isConfirmed) {
-      axios
-        .put(`${process.env.REACT_APP_API_LINK}/users/deactivate/${userID}`)
-        .then((response) => {
-          if (response.status === 200) {
-            notifySuccess("Successfully deactivated");
-            setUsers((prevUsers) =>
-              prevUsers.map((user) =>
-                user._id === userID ? { ...user, status: "Deactivated" } : user
-              )
-            );
-          } else {
-            notifyError("Deactivation Unsuccessful");
-          }
-        })
-        .catch((error) => {
-          notifyError("Something went wrong");
-          console.error(error.message);
-        });
-    }
-  };
-
-  const handleActivate = async (userID) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Activating this user will restore their access.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, activate it!",
-      cancelButtonText: "Cancel",
-    });
-
-    if (result.isConfirmed) {
-      axios
-        .put(`${process.env.REACT_APP_API_LINK}/users/activate/${userID}`)
-        .then((response) => {
-          if (response.status === 200) {
-            notifySuccess("Successfully activated");
-            setUsers((prevUsers) =>
-              prevUsers.map((user) =>
-                user._id === userID ? { ...user, status: "activated" } : user
-              )
-            );
-          } else {
-            notifyError("Activation Unsuccessful");
-          }
-        })
-        .catch((error) => {
-          notifyError("Something went wrong");
-          console.error(error.message);
-        });
-    }
-  };
-
-  const handleDelete = async (userID) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You will not be able to recover this user!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-    });
-
-    if (result.isConfirmed) {
-      axios
-        .delete(`${process.env.REACT_APP_API_LINK}/users/${userID}/`)
-        .then((response) => {
-          if (response.status === 204) {
-            notifySuccess("Successfully Deleted");
-            setUsers((prevUsers) =>
-              prevUsers.filter((user) => user.id !== userID)
-            );
-          } else {
-            notifyError("Deletion Unsuccessful");
-          }
-        })
-        .catch((error) => {
-          notifyError("Something went wrong");
-          console.error(error.message);
-        });
-    }
-  };
 
   return (
     <div className="px-3 mt-8">
@@ -178,24 +54,6 @@ const UsersPage = () => {
           <span className="text-blue-500 hover:underline">Users</span>
         </p>
       </div>
-      <button
-        onClick={() => openModal()} // Open modal for adding new user
-        className="mt-5 px-4 py-2 rounded-md font-semibold border-2 text-green-500 border-green-500 hover:bg-green-500 hover:text-white"
-      >
-        Add User
-      </button>
-
-      {isModalOpen && (
-        <UserModal
-          userToEdit={selectedUser}
-          isEditing={isEditing}
-          onClose={closeModal}
-          onUserCreated={handleUserChange}
-          notifySuccess={notifySuccess}
-          notifyError={notifyError}
-          refresh={fetchUsers}
-        />
-      )}
 
       {/* Displays users in a table */}
       <div className="mt-4 bg-white p-4 shadow-md rounded-lg">
@@ -203,8 +61,7 @@ const UsersPage = () => {
           <thead>
             <tr>
               <th className="py-2 px-4 border-b text-left">ID</th>
-              <th className="py-2 px-4 border-b text-left">First Name</th>
-              <th className="py-2 px-4 border-b text-left">Last Name</th>
+              <th className="py-2 px-4 border-b text-left">Name</th>
               <th className="py-2 px-4 border-b text-left">Email</th>
               <th className="py-2 px-4 border-b text-left">Last Login</th>
               <th className="py-2 px-4 border-b text-left">Role</th>
@@ -213,18 +70,15 @@ const UsersPage = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {users.map((user, index) => (
               <tr key={user._id} className="hover:bg-slate-50">
-                <td className="py-2 px-4 border-b">{user.id}</td>
-                <td className="py-2 px-4 border-b">{user.first_name}</td>
-                <td className="py-2 px-4 border-b">{user.last_name}</td>
+                <td className="py-2 px-4 border-b">{index + 1}</td>
+                <td className="py-2 px-4 border-b">{user.name}</td>
                 <td className="py-2 px-4 border-b">{user.email}</td>
                 <td className="py-2 px-4 border-b">
                   {formatDate(user.last_login)}
                 </td>
-                <td className="py-2 px-4 border-b">
-                  {user.is_superuser ? "Admin" : "User"}
-                </td>
+                <td className="py-2 px-4 border-b">{user.role}</td>
                 <td>
                   {user.profile ? (
                     <img
