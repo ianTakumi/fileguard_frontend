@@ -1,10 +1,8 @@
 import React, { useState, useRef } from "react";
 import {
-  getProfile,
   getUser,
   notifyError,
   notifySuccess,
-  setProfile,
   setUser,
 } from "../../../utils/Helpers";
 import ChangePassword from "../../../components/User/Auth/Modals/ChangePassword";
@@ -15,7 +13,6 @@ import { useForm } from "react-hook-form";
 const Profile = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const user = getUser();
-  const [profile, setProfileState] = useState(getProfile());
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -53,30 +50,30 @@ const Profile = () => {
     }
   };
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append("profile_picture", file);
+  // const handleImageChange = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     const formData = new FormData();
+  //     formData.append("profile_picture", file);
 
-      try {
-        const response = await client.post(
-          `${process.env.REACT_APP_API_LINK}/profile/change-picture/`,
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-            withCredentials: true,
-          }
-        );
-        setProfileState({ ...profile, url: response.data.profile.url });
-        setProfile(response.data);
-        window.location.reload();
-        notifySuccess("Profile picture updated!");
-      } catch (error) {
-        notifyError("Failed to update profile picture.");
-      }
-    }
-  };
+  //     try {
+  //       const response = await client.post(
+  //         `${process.env.REACT_APP_API_LINK}/profile/change-picture/`,
+  //         formData,
+  //         {
+  //           headers: { "Content-Type": "multipart/form-data" },
+  //           withCredentials: true,
+  //         }
+  //       );
+  //       setProfileState({ ...profile, url: response.data.profile.url });
+  //       setProfile(response.data);
+  //       window.location.reload();
+  //       notifySuccess("Profile picture updated!");
+  //     } catch (error) {
+  //       notifyError("Failed to update profile picture.");
+  //     }
+  //   }
+  // };
 
   const openFileExplorer = () => {
     fileInputRef.current.click();
@@ -109,11 +106,11 @@ const Profile = () => {
           {/* Left Column */}
           <div className="flex flex-col items-center text-center">
             <div className="relative mb-6">
-              <img
+              {/* <img
                 src={profile.url}
                 alt="Profile"
                 className="w-32 h-32 rounded-full mx-auto mb-2 object-cover"
-              />
+              /> */}
               <i
                 className="fi fi-tr-camera text-white bg-blue-500 rounded-full p-2 absolute bottom-2 left-1/2 transform -translate-x-1/2 text-base shadow-lg cursor-pointer"
                 onClick={openFileExplorer}

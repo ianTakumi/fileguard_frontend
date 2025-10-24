@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FiEdit } from "react-icons/fi";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getUser, formatDate, getProfile } from "../../utils/Helpers";
+import { getUser, formatDate } from "../../utils/Helpers";
 import ProfileModal from "../../components/Admin/Modal/Profile";
 import ChangePasswordModal from "../../components/Admin/Modal/ChangePasswordModal";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,6 @@ const Profile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const user = getUser();
-  const profile = getProfile();
   const navigate = useNavigate();
 
   const handleEditProfile = () => setIsModalOpen(true);
@@ -50,11 +49,11 @@ const Profile = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
             {/* Profile Image */}
-            <img
+            {/* <img
               src={profile?.url || "/default-profile.png"}
               alt="Profile"
               className="rounded-full w-32 h-32 object-cover"
-            />
+            /> */}
             {/* User Details */}
             <div className="text-xl">
               <h2 className="text-2xl font-semibold">

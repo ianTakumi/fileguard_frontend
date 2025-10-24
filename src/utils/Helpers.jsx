@@ -1,45 +1,13 @@
 import { toast } from "react-toastify";
 
 export const authenticate = (data) => {
-  if (window !== "undefined") {
-    localStorage.setItem("access_token", JSON.stringify(data.access));
-    localStorage.setItem("refresh_token", JSON.stringify(data.refresh));
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("profile", JSON.stringify(data.profile));
-  }
-};
-
-export const setToken = (data) => {
-  if (window !== "undefined") {
-    localStorage.setItem("access_token", JSON.stringify(data.access));
-  }
-};
-
-export const setProfile = (data) => {
-  if (typeof window !== "undefined" && window.localStorage) {
-    console.log(data);
-    // Save to localStorage
-    localStorage.setItem("profile", JSON.stringify(data.profile));
+  if (typeof window !== "undefined" && data.session) {
+    localStorage.setItem("supabase_session", JSON.stringify(data.session));
+    localStorage.setItem("supabase_user", JSON.stringify(data.user));
   }
 };
 
 export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export const getToken = () => {
-  if (typeof window !== "undefined") {
-    // Check if the window object is defined
-    const accessToken = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
-
-    // Check if both tokens exist
-    if (accessToken && refreshToken) {
-      return { accessToken, refreshToken };
-    } else {
-      return false;
-    }
-  }
-  return false;
-};
 
 export const getUser = () => {
   if (typeof window !== "undefined") {
@@ -54,16 +22,6 @@ export const getUser = () => {
 export const setUser = (data) => {
   if (typeof window !== "undefined") {
     localStorage.setItem("user", JSON.stringify(data.user));
-  }
-};
-
-export const getProfile = () => {
-  if (typeof window !== "undefined") {
-    if (localStorage.getItem("profile")) {
-      return JSON.parse(localStorage.getItem("profile"));
-    } else {
-      return false;
-    }
   }
 };
 

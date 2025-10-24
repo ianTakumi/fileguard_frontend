@@ -7,7 +7,7 @@ import {
   MdLogout,
 } from "react-icons/md";
 import { useNavigate, NavLink } from "react-router-dom";
-import { logout, getUser, getProfile } from "../../../utils/Helpers";
+import { logout, getUser } from "../../../utils/Helpers";
 import Swal from "sweetalert2";
 import client from "../../../utils/client";
 
@@ -16,7 +16,6 @@ const Navbar = ({ toggleSidebar }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const user = getUser();
-  const profile = getProfile();
 
   const handleSearch = () => {
     console.log("Search for:", searchTerm);
@@ -87,11 +86,11 @@ const Navbar = ({ toggleSidebar }) => {
             onClick={toggleProfileDropdown}
             className="flex items-center gap-3 text-gray-800 hover:text-black focus:outline-none"
           >
-            <img
+            {/* <img
               src={profile.url}
               alt="User Profile Pic"
               className="rounded-full w-10 h-10 object-cover"
-            />
+            /> */}
             <span className="text-sm font-medium">
               {user.first_name + " " + user.last_name}
             </span>

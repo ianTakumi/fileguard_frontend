@@ -1,17 +1,11 @@
 import React, { useState } from "react";
 import { FiHelpCircle, FiSearch, FiMenu } from "react-icons/fi";
 import client from "../../../../utils/client";
-import {
-  notifyError,
-  notifySuccess,
-  logout,
-  getProfile,
-} from "../../../../utils/Helpers";
+import { notifyError, notifySuccess, logout } from "../../../../utils/Helpers";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const Navbar = () => {
-  const profile = getProfile();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -76,12 +70,12 @@ const Navbar = () => {
 
           <div className="relative">
             {/* Profile Avatar */}
-            <img
+            {/* <img
               src={profile.url}
               alt="User Avatar"
               onClick={toggleDropdown}
               className="w-8 h-8 rounded-full cursor-pointer border border-gray-300 hover:ring-2 hover:ring-gray-300 transition"
-            />
+            /> */}
 
             {/* Dropdown Menu */}
             {dropdownOpen && (

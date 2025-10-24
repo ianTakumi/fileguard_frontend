@@ -1,116 +1,103 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import client from "../../utils/client";
+import { supabase } from "../../utils/supabase";
 import {
   notifyError,
   notifySuccess,
   getBorderColor,
-  authenticate,
 } from "../../utils/Helpers";
+import { motion } from "framer-motion";
 
 const SignUp = () => {
-  const [isUsernameUnique, setIsUsernameUnique] = useState(true);
-  const [isEmailUnique, setIsEmailUnique] = useState(true);
   const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
-    watch,
     reset,
-    setError,
     formState: { errors, touchedFields },
   } = useForm({ mode: "onChange" });
 
-  const username = watch("username");
-  const email = watch("email");
-
-  useEffect(() => {
-    const checkUniqueness = async () => {
-      if (username) {
-        const response = await client.get("/check-unique/", {
-          params: { username },
-        });
-        setIsUsernameUnique(response.data.is_username_unique);
-        if (!response.data.is_username_unique) {
-          setError("username", {
-            type: "manual",
-            message: "Username already exists",
-          });
-        }
-      }
-
-      if (email) {
-        const response = await client.get("/check-unique/", {
-          params: { email },
-        });
-        setIsEmailUnique(response.data.is_email_unique);
-        if (!response.data.is_email_unique) {
-          setError("email", {
-            type: "manual",
-            message: "Email already exists",
-          });
-        }
-      }
-    };
-
-    checkUniqueness();
-  }, [username, email, setError]);
-
   const onSubmit = async (data) => {
     try {
-      await client.post("/register/", data).then((response) => {
-        reset();
-        notifySuccess("Registration successful!");
-        authenticate(response.data);
-        navigate("/drive");
+      // Create user using Supabase Auth
+      const { data: signupData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            first_name: data.first_name,
+            last_name: data.last_name,
+          },
+        },
       });
+
+      if (error) {
+        notifyError(error.message);
+        return;
+      }
+
+      notifySuccess(
+        "Registration successful! Please check your email to confirm your account."
+      );
+      reset();
+      navigate("/signin");
     } catch (error) {
-      notifyError("Registration failed. Please try again.");
+      notifyError("Something went wrong during registration.");
       console.error(error);
     }
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen">
-      {/* Left Side - Sign Up Form */}
-      <div className="flex-1 flex flex-col justify-center items-center bg-white px-8 md:px-20">
-        {/* Logo */}
-        <div
-          className="flex flex-col items-center mb-10 cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          <img
-            src="/images/logo.png"
-            alt="FileGuard Logo"
-            className="w-28 mb-3"
-          />
-          <p className="text-2xl font-bold text-blue-600 tracking-wide">
-            FileGuard
+    <div className="flex h-screen w-full overflow-hidden">
+      {/* Left Side - Illustration */}
+      <div className="hidden lg:flex flex-1 relative bg-gradient-to-br from-blue-700 via-indigo-600 to-blue-500 text-white items-center justify-center">
+        <div className="absolute inset-0 bg-[url('/images/login-image.png')] bg-cover bg-center opacity-25"></div>
+        <div className="relative text-center z-10 px-8 max-w-lg">
+          <h2 className="text-4xl font-bold mb-4">Welcome to FileGuard 🔐</h2>
+          <p className="text-gray-200 leading-relaxed">
+            Protect and share your files securely in one place.
           </p>
         </div>
+      </div>
 
-        {/* Form Container */}
-        <div className="w-full max-w-md bg-gray-50 shadow-lg rounded-2xl p-8 border border-gray-100">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            Create Your Account 🧾
+      {/* Right Side - Form */}
+      <div className="flex-1 flex justify-center items-center bg-gradient-to-br from-blue-50 via-white to-blue-100">
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-md bg-white/80 backdrop-blur-md border border-gray-200 shadow-lg rounded-2xl p-8 mx-4"
+        >
+          {/* Logo */}
+          <div
+            className="flex flex-col items-center mb-6 cursor-pointer"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src="/images/logo.png"
+              alt="FileGuard Logo"
+              className="w-16 mb-2"
+            />
+            <p className="text-xl font-semibold text-blue-600">FileGuard</p>
+          </div>
+
+          <h2 className="text-2xl font-bold text-gray-800 text-center mb-1">
+            Create an Account
           </h2>
-          <p className="text-gray-500 text-center mb-8">
-            Get started with secure file sharing and protection
+          <p className="text-gray-500 text-center mb-5 text-sm">
+            Get started with secure file sharing
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             {/* First Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                First Name<span className="text-red-500">*</span>
-              </label>
               <input
                 id="first_name"
                 type="text"
-                placeholder="Ex: John"
-                className={`w-full p-3 rounded-md border ${getBorderColor(
+                placeholder="First Name"
+                className={`w-full p-3 rounded-lg border text-sm ${getBorderColor(
                   "first_name",
                   errors,
                   touchedFields
@@ -120,7 +107,7 @@ const SignUp = () => {
                 })}
               />
               {errors.first_name && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.first_name.message}
                 </p>
               )}
@@ -128,14 +115,11 @@ const SignUp = () => {
 
             {/* Last Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Last Name<span className="text-red-500">*</span>
-              </label>
               <input
                 id="last_name"
                 type="text"
-                placeholder="Ex: Doe"
-                className={`w-full p-3 rounded-md border ${getBorderColor(
+                placeholder="Last Name"
+                className={`w-full p-3 rounded-lg border text-sm ${getBorderColor(
                   "last_name",
                   errors,
                   touchedFields
@@ -145,47 +129,19 @@ const SignUp = () => {
                 })}
               />
               {errors.last_name && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.last_name.message}
-                </p>
-              )}
-            </div>
-
-            {/* Username */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Username<span className="text-red-500">*</span>
-              </label>
-              <input
-                id="username"
-                type="text"
-                placeholder="Ex: johndoe123"
-                className={`w-full p-3 rounded-md border ${getBorderColor(
-                  "username",
-                  errors,
-                  touchedFields
-                )} focus:ring-2 focus:ring-blue-400 focus:outline-none`}
-                {...register("username", {
-                  required: "Username is required",
-                })}
-              />
-              {errors.username && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.username.message}
                 </p>
               )}
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address<span className="text-red-500">*</span>
-              </label>
               <input
                 id="email"
                 type="email"
-                placeholder="mail@example.com"
-                className={`w-full p-3 rounded-md border ${getBorderColor(
+                placeholder="Email"
+                className={`w-full p-3 rounded-lg border text-sm ${getBorderColor(
                   "email",
                   errors,
                   touchedFields
@@ -199,7 +155,7 @@ const SignUp = () => {
                 })}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.email.message}
                 </p>
               )}
@@ -207,50 +163,44 @@ const SignUp = () => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password<span className="text-red-500">*</span>
-              </label>
               <input
                 id="password"
                 type="password"
-                placeholder="Min. 8 characters"
-                className={`w-full p-3 rounded-md border ${getBorderColor(
+                placeholder="Password (min 8 chars)"
+                className={`w-full p-3 rounded-lg border text-sm ${getBorderColor(
                   "password",
                   errors,
                   touchedFields
                 )} focus:ring-2 focus:ring-blue-400 focus:outline-none`}
                 {...register("password", {
                   required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters long",
-                  },
+                  minLength: { value: 8, message: "Minimum 8 characters" },
                 })}
               />
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
-            {/* Submit Button */}
+            {/* Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition-transform transform hover:scale-[1.02] shadow-md"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white font-semibold py-3 rounded-lg shadow-md transition-transform transform hover:scale-[1.02] text-sm"
             >
-              Sign Up
+              Create Account
             </button>
 
             {/* Divider */}
-            <div className="flex items-center my-4">
+            <div className="flex items-center my-2">
               <hr className="flex-grow border-gray-300" />
-              <span className="mx-2 text-gray-400 text-sm">or</span>
+              <span className="mx-2 text-gray-400 text-xs">or</span>
               <hr className="flex-grow border-gray-300" />
             </div>
 
-            {/* Sign In Redirect */}
-            <p className="text-center text-sm text-gray-600">
+            {/* Redirect */}
+            <p className="text-center text-xs text-gray-600">
               Already have an account?{" "}
               <Link
                 to="/signin"
@@ -260,23 +210,7 @@ const SignUp = () => {
               </Link>
             </p>
           </form>
-        </div>
-      </div>
-
-      {/* Right Side Image */}
-      <div
-        className="hidden lg:flex flex-1 bg-cover bg-center"
-        style={{
-          backgroundImage: "url('/images/login-image.png')",
-        }}
-      >
-        <div className="bg-blue-900/40 w-full h-full flex flex-col items-center justify-center text-white text-center p-10">
-          <h2 className="text-4xl font-bold mb-4">Join FileGuard Today</h2>
-          <p className="max-w-md text-gray-200">
-            Experience a secure way to store, protect, and share your files —
-            FileGuard keeps your data safe, always.
-          </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
