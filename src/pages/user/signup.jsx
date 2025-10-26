@@ -30,6 +30,8 @@ const SignUp = () => {
             last_name: data.last_name,
             dob: data.dob,
             gender: data.gender,
+            phone_number: data.phone_number,
+            role: "role",
           },
         },
       });

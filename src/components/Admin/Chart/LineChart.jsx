@@ -30,7 +30,7 @@ const LineChart = () => {
 
   const fetchContacts = async () => {
     try {
-      const response = await client.get("/contact-list/");
+      const response = await client.get("/contacts/");
       setContacts(response.data);
     } catch {
       notifyError("Error fetching contacts");

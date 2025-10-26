@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FiEdit } from "react-icons/fi";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getUser, formatDate } from "../../utils/Helpers";
+import { getUser } from "../../utils/Helpers";
 import ProfileModal from "../../components/Admin/Modal/Profile";
 import ChangePasswordModal from "../../components/Admin/Modal/ChangePasswordModal";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ const Profile = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const user = getUser();
   const navigate = useNavigate();
-
+  console.log(user);
   const handleEditProfile = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
   const handleOpenPasswordModal = () => setIsPasswordModalOpen(true);
@@ -22,99 +22,104 @@ const Profile = () => {
   const redirect_profile = () => navigate("/admin/profile");
 
   return (
-    <div className="container mx-auto mt-8">
+    <div className="container mx-auto mt-10 px-4">
       {/* Page Header */}
-      <div className="flex justify-between mb-8">
-        <h1 className="text-3xl font-bold font-serif">Admin Profile</h1>
+      <div className="flex justify-between mb-10 items-center">
+        <h1 className="text-3xl font-bold font-serif text-gray-800">
+          Admin Profile
+        </h1>
         <p className="text-sm text-gray-500">
           <span
-            className="text-blue-500 hover:underline cursor-pointer"
+            className="text-blue-600 hover:underline cursor-pointer"
             onClick={redirect_home}
           >
-            Home{" "}
-          </span>
-          /
+            Home
+          </span>{" "}
+          /{" "}
           <span
             className="cursor-pointer hover:underline"
             onClick={redirect_profile}
           >
-            {" "}
             Profile
           </span>
         </p>
       </div>
 
-      {/* Profile Information Section */}
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <div className="flex items-center justify-between">
+      {/* Profile Header Card */}
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg p-8 text-white relative">
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-between">
           <div className="flex items-center space-x-6">
             {/* Profile Image */}
-            {/* <img
-              src={profile?.url || "/default-profile.png"}
+            <img
+              src="/default-profile.png"
               alt="Profile"
-              className="rounded-full w-32 h-32 object-cover"
-            /> */}
-            {/* User Details */}
-            <div className="text-xl">
-              <h2 className="text-2xl font-semibold">
+              className="rounded-full w-28 h-28 object-cover border-4 border-white shadow-md"
+            />
+
+            <div>
+              <h2 className="text-3xl font-semibold mb-1">
                 {(user?.first_name || "") + " " + (user?.last_name || "")}
               </h2>
-              <p className="text-gray-600 mt-1">
+              <p className="text-lg text-blue-100">
                 {user?.email || "admin@example.com"}
               </p>
-              <p className="text-gray-600 font-semibold capitalize mt-1">
+              <p className="font-medium mt-2 bg-white/20 px-3 py-1 rounded-lg inline-block">
                 Administrator
               </p>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex space-x-4">
-            <button
-              onClick={handleEditProfile}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-md flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              aria-label="Edit profile"
-            >
-              <FiEdit className="w-5 h-5" />
-              <span>Edit Profile</span>
-            </button>
-          </div>
+          {/* Edit Button */}
+          <button
+            onClick={handleEditProfile}
+            className="bg-white text-blue-600 hover:bg-blue-100 px-6 py-3 rounded-lg font-medium flex items-center space-x-2 shadow-md mt-6 md:mt-0"
+          >
+            <FiEdit className="w-5 h-5" />
+            <span>Edit Profile</span>
+          </button>
         </div>
       </div>
 
-      {/* Centered and Larger Profile Details */}
-      <div className="mt-12 flex justify-center">
-        <div className="bg-white rounded-lg shadow-md p-8 w-full md:w-3/4 lg:w-1/2">
-          <h3 className="text-2xl font-semibold mb-6 text-center">
-            Profile Details
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg text-gray-700">
-            <p>
-              <strong>First Name:</strong> {user?.first_name || "N/A"}
-            </p>
-            <p>
-              <strong>Last Name:</strong> {user?.last_name || "N/A"}
-            </p>
-            <p>
-              <strong>Username:</strong> {user?.username || "N/A"}
-            </p>
-            <p>
-              <strong>Email:</strong> {user?.email || "N/A"}
-            </p>
-          </div>
+      {/* Profile Details Section */}
+      <div className="mt-12 bg-white rounded-2xl shadow-md p-10">
+        <h3 className="text-2xl font-semibold text-center mb-8 text-gray-800">
+          Profile Details
+        </h3>
 
-          {/* Change Password Button */}
-          <div className="mt-10 flex justify-center">
-            <button
-              onClick={handleOpenPasswordModal}
-              className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300"
-            >
-              Change Password
-            </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-lg text-gray-700">
+          <div>
+            <p className="text-gray-500 text-sm uppercase mb-1">First Name</p>
+            <p className="font-medium">{user?.first_name || "N/A"}</p>
           </div>
+          <div>
+            <p className="text-gray-500 text-sm uppercase mb-1">Last Name</p>
+            <p className="font-medium">{user?.last_name || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm uppercase mb-1">Phone Number</p>
+            <p className="font-medium">{user?.phoneNumber || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm uppercase mb-1">Email</p>
+            <p className="font-medium">{user?.email || "N/A"}</p>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 my-8"></div>
+
+        {/* Change Password Button */}
+        <div className="flex justify-center">
+          <button
+            onClick={handleOpenPasswordModal}
+            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg shadow-md font-medium transition-all duration-200"
+          >
+            Change Password
+          </button>
         </div>
       </div>
 
+      {/* Toast + Modals */}
       <ToastContainer />
       {isModalOpen && (
         <ProfileModal

@@ -30,16 +30,25 @@ const Home = () => {
 
   const getNumberOfContact = async () => {
     try {
+      await client.get(`/contacts/count/`).then((response) => {
+        console.log(response);
+        setContactCount(response.data.count);
+      });
+    } catch (err) {
+      notifyError("Error fetching number of contacts");
+      console.error("Error fetching number of contacts:", err);
+    }
+  };
+
+  const getNumberOfFiles = async () => {
+    try {
       await client
-        .get(`${process.env.REACT_APP_API_LINK}/contact-count/`, {
+        .get("/files/count/", {
           withCredentials: true,
         })
         .then((response) => {
-          setContactCount(response.data.contact_count);
-        })
-        .catch((err) => {
-          notifyError("Error fetching number of contacts");
-          console.error("Error fetching number of contacts:", err);
+          console.log(response);
+          setFileCount(response.count);
         });
     } catch (err) {
       notifyError("Error fetching number of contacts");
@@ -47,12 +56,10 @@ const Home = () => {
     }
   };
 
-  const getNumberOfFiles = async () => {};
-
   useEffect(() => {
-    getNumberofUsers();
+    // getNumberofUsers();
     getNumberOfContact();
-    getNumberOfFiles();
+    // getNumberOfFiles();
 
     if (loggedIn && user && user.is_superuser === true) {
       notifySuccess("Successfully logged in");
@@ -101,7 +108,7 @@ const Home = () => {
       </div>
 
       {/* Container for BarChart, LineChart, and PieChart */}
-      <div className="flex flex-wrap container mt-5 gap-5   rounded-lg w-full ">
+      {/* <div className="flex flex-wrap container mt-5 gap-5   rounded-lg w-full ">
         <div className="flex-grow basis-1/3 min-w-[300px] p-4 bg-white shadow rounded-lg">
           <Map />
         </div>
@@ -112,7 +119,7 @@ const Home = () => {
 
       <div className="container mt-5 bg-white p-4 shadow-md rounded-lg">
         <LineChart />
-      </div>
+      </div> */}
     </div>
   );
 };

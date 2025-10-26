@@ -1,9 +1,27 @@
 import { toast } from "react-toastify";
+import supabase from "./supabase";
 
 export const authenticate = (data) => {
-  if (typeof window !== "undefined" && data.session) {
+  if (typeof window !== "undefined" && data.session && data.user) {
+    // Save the session
     localStorage.setItem("supabase_session", JSON.stringify(data.session));
-    localStorage.setItem("supabase_user", JSON.stringify(data.user));
+
+    // Extract user info (works for Supabase and custom backends)
+    const { user } = data;
+
+    // If Supabase, user info might be inside user_metadata
+    const userData = {
+      id: user.id,
+      email: user.email,
+      first_name: user.user_metadata?.first_name || user.first_name || "",
+      last_name: user.user_metadata?.last_name || user.last_name || "",
+      role: user.user_metadata?.role || user.role || "",
+      avatar: user.user_metadata?.avatar || null,
+      phone_number: user.phone_number,
+    };
+
+    // Save user data
+    localStorage.setItem("supabase_user", JSON.stringify(userData));
   }
 };
 
@@ -11,12 +29,10 @@ export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const getUser = () => {
   if (typeof window !== "undefined") {
-    if (localStorage.getItem("user")) {
-      return JSON.parse(localStorage.getItem("user"));
-    } else {
-      return false;
-    }
+    const user = localStorage.getItem("supabase_user");
+    return user ? JSON.parse(user) : null;
   }
+  return null;
 };
 
 export const setUser = (data) => {
@@ -27,10 +43,8 @@ export const setUser = (data) => {
 
 export const logout = () => {
   if (window !== "undefined") {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("profile");
+    localStorage.removeItem("supabase_session");
+    localStorage.removeItem("supabase_user");
   }
 };
 

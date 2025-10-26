@@ -7,19 +7,16 @@ import {
   MdLogout,
 } from "react-icons/md";
 import { useNavigate, NavLink } from "react-router-dom";
-import { logout, getUser } from "../../../utils/Helpers";
+import { logout, getUser, notifySuccess } from "../../../utils/Helpers";
 import Swal from "sweetalert2";
 import client from "../../../utils/client";
+import supabase from "../../../utils/supabase";
 
 const Navbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const user = getUser();
-
-  const handleSearch = () => {
-    console.log("Search for:", searchTerm);
-  };
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
@@ -37,18 +34,13 @@ const Navbar = ({ toggleSidebar }) => {
     });
 
     if (result.isConfirmed) {
-      try {
-        await client.post(`${process.env.REACT_APP_API_LINK}/logout/`);
-        logout();
-        navigate("/");
+      const { error } = await supabase.auth.signOut();
 
-        Swal.fire(
-          "Logged Out!",
-          "You have been logged out successfully.",
-          "success"
-        );
-      } catch (error) {
-        Swal.fire("Error", "Failed to log out. Please try again.", "error");
+      if (error) {
+        console.error("Error signing out:", error.message);
+      } else {
+        notifySuccess("Logout Successfully!");
+        navigate("/");
       }
     }
 
