@@ -18,10 +18,9 @@ const Home = () => {
 
   const getNumberofUsers = async () => {
     try {
-      const response = await client.get(
-        `${process.env.REACT_APP_API_LINK}/user-count`,
-        { withCredentials: true }
-      );
+      const response = await client.get(`/users/user-count`, {
+        withCredentials: true,
+      });
       setUserCount(response.data.user_count);
     } catch (err) {
       console.error("Error fetching user count:", err);

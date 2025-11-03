@@ -97,7 +97,7 @@ const Profile = () => {
           </div>
           <div>
             <p className="text-gray-500 text-sm uppercase mb-1">Phone Number</p>
-            <p className="font-medium">{user?.phoneNumber || "N/A"}</p>
+            <p className="font-medium">{user?.phone_number || "N/A"}</p>
           </div>
           <div>
             <p className="text-gray-500 text-sm uppercase mb-1">Email</p>

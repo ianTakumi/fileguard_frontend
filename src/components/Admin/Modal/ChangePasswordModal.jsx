@@ -1,140 +1,153 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import client from "../../../utils/client";
-import { getUser, notifyError, getBorderColor } from "../../../utils/Helpers";
-import { ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
+import supabase from "../../../utils/supabase";
 
-const ChangePassword = ({ onClose }) => {
+const ChangePasswordModal = ({ isOpen, onClose }) => {
+  const [loading, setLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: { errors, touchedFields },
+    formState: { errors },
+    watch,
+    reset,
   } = useForm();
 
-  const onSubmit = (data) => {
-    const user = getUser();
-    data.user = user;
-    console.log(data);
+  const onSubmit = async (data) => {
+    setLoading(true);
 
-    client
-      .put(`${process.env.REACT_APP_API_LINK}/change-password/`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        if (error.response) {
-          const errorMessage = error.response.data.msg;
-          console.log(errorMessage);
-          notifyError(errorMessage);
-        } else {
-          console.log(error.message);
-          notifyError(error.message);
-        }
+    try {
+      // Update password in Supabase Auth
+      const { error } = await supabase.auth.updateUser({
+        password: data.new_password,
       });
+
+      if (error) throw error;
+
+      toast.success("Password updated successfully!");
+      reset();
+      onClose();
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
-        <h2 className="text-xl font-bold mb-4">Change Password</h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-4">
-            <label
-              htmlFor="current_password"
-              className="block text-gray-700 mb-2"
-            >
-              Current Password
-            </label>
-            <input
-              id="current_password"
-              type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "current_password",
-                errors,
-                touchedFields
-              )}`}
-              {...register("current_password", {
-                required: "Current Password is required",
-              })}
-            />
-            {errors.current_password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.current_password.message}
-              </p>
-            )}
+    <>
+      {/* Blur Overlay */}
+      <div
+        className="fixed inset-0 z-40 backdrop-blur-md bg-black/20"
+        onClick={onClose}
+      />
+
+      {/* Modal Content */}
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 border border-gray-300 transform transition-all">
+          <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-red-50 to-gray-50 rounded-t-2xl">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Change Password
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Secure your account with a new password
+            </p>
           </div>
-          <div className="mb-4">
-            <label htmlFor="new_password" className="block text-gray-700 mb-2">
-              New Password
-            </label>
-            <input
-              id="new_password"
-              type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "new_password",
-                errors,
-                touchedFields
-              )}`}
-              {...register("new_password", {
-                required: "New Password is required",
-              })}
-            />
-            {errors.new_password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.new_password.message}
-              </p>
-            )}
-          </div>
-          <div className="mb-4">
-            <label
-              htmlFor="confirm_password"
-              className="block text-gray-700 mb-2"
-            >
-              Confirm Password
-            </label>
-            <input
-              id="confirm_password"
-              type="password"
-              className={`w-full px-3 py-2 border rounded-md ${getBorderColor(
-                "confirm_password",
-                errors,
-                touchedFields
-              )}`}
-              {...register("confirm_password", {
-                required: "Confirm Password is required",
-              })}
-            />
-            {errors.confirm_password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.confirm_password.message}
-              </p>
-            )}
-          </div>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-md text-gray-500 border border-gray-300 mr-2"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-md font-semibold border-2 text-blue-500 border-blue-500 hover:bg-blue-500 hover:text-white"
-            >
-              Update
-            </button>
-          </div>
-        </form>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Current Password
+              </label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                {...register("current_password", {
+                  required: "Current password is required",
+                })}
+              />
+              {errors.current_password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.current_password.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                {...register("new_password", {
+                  required: "New password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters",
+                  },
+                })}
+              />
+              {errors.new_password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.new_password.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                {...register("confirm_password", {
+                  required: "Please confirm your password",
+                  validate: (value) =>
+                    value === watch("new_password") || "Passwords do not match",
+                })}
+              />
+              {errors.confirm_password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.confirm_password.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium disabled:opacity-50 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  <span>Change Password</span>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-      <ToastContainer />
-    </div>
+    </>
   );
 };
 
-export default ChangePassword;
+export default ChangePasswordModal;
