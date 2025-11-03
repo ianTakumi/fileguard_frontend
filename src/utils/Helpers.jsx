@@ -1,9 +1,7 @@
 import { toast } from "react-toastify";
-import supabase from "./supabase";
 
 export const authenticate = (data) => {
   if (typeof window !== "undefined" && data.session && data.user) {
-    // Save the session
     localStorage.setItem("supabase_session", JSON.stringify(data.session));
 
     // Extract user info (works for Supabase and custom backends)
@@ -17,7 +15,7 @@ export const authenticate = (data) => {
       last_name: user.user_metadata?.last_name || user.last_name || "",
       role: user.user_metadata?.role || user.role || "",
       avatar: user.user_metadata?.avatar || null,
-      phone_number: user.phone_number,
+      phone_number: user.user_metadata?.phone_number || "",
     };
 
     // Save user data

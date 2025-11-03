@@ -9,6 +9,7 @@ import {
   authenticate,
 } from "../../utils/Helpers";
 import { motion } from "framer-motion";
+import { useDispatch } from "react-redux";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const SignIn = () => {
 
   const onValid = async (data) => {
     try {
-      setLoading(true); // 🔥 Disable button + show loading state
+      setLoading(true);
 
       const { data: loginData, error } = await supabase.auth.signInWithPassword(
         {

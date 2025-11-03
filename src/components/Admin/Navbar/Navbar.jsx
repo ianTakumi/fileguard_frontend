@@ -9,7 +9,6 @@ import {
 import { useNavigate, NavLink } from "react-router-dom";
 import { logout, getUser, notifySuccess } from "../../../utils/Helpers";
 import Swal from "sweetalert2";
-import client from "../../../utils/client";
 import supabase from "../../../utils/supabase";
 
 const Navbar = ({ toggleSidebar }) => {
@@ -40,6 +39,7 @@ const Navbar = ({ toggleSidebar }) => {
         console.error("Error signing out:", error.message);
       } else {
         notifySuccess("Logout Successfully!");
+        logout();
         navigate("/");
       }
     }

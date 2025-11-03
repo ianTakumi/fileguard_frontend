@@ -9,10 +9,14 @@ import ChangePassword from "../../../components/User/Auth/Modals/ChangePassword"
 import client from "../../../utils/client";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { FaCamera, FaTrashAlt, FaUserEdit, FaLock } from "react-icons/fa";
+import supabase from "../../../utils/supabase";
 
 const Profile = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const user = getUser();
+  console.log(user);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -24,97 +28,131 @@ const Profile = () => {
     defaultValues: {
       first_name: user.first_name || "",
       last_name: user.last_name || "",
-      username: user.username || "",
+      phone_number: user.phone_number || "",
       email: user.email || "",
     },
   });
 
-  const handleOpenPasswordModal = () => {
-    setIsPasswordModalOpen(true);
-  };
-
-  const handleClosePasswordModal = () => {
-    setIsPasswordModalOpen(false);
-  };
+  const handleOpenPasswordModal = () => setIsPasswordModalOpen(true);
+  const handleClosePasswordModal = () => setIsPasswordModalOpen(false);
 
   const handleDelete = async (userID) => {
     try {
+      setIsLoading(true);
       await client.delete(
         `${process.env.REACT_APP_API_LINK}/users/${userID}/`,
-        { withCredentials: true }
+        {
+          withCredentials: true,
+        }
       );
-      navigate("/"); // Redirect after successful deletion
       notifySuccess("Account successfully deleted");
+      navigate("/");
     } catch (error) {
-      notifyError("Something went wrong");
+      notifyError("Something went wrong while deleting account");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // const handleImageChange = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     const formData = new FormData();
-  //     formData.append("profile_picture", file);
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  //     try {
-  //       const response = await client.post(
-  //         `${process.env.REACT_APP_API_LINK}/profile/change-picture/`,
-  //         formData,
-  //         {
-  //           headers: { "Content-Type": "multipart/form-data" },
-  //           withCredentials: true,
-  //         }
-  //       );
-  //       setProfileState({ ...profile, url: response.data.profile.url });
-  //       setProfile(response.data);
-  //       window.location.reload();
-  //       notifySuccess("Profile picture updated!");
-  //     } catch (error) {
-  //       notifyError("Failed to update profile picture.");
-  //     }
-  //   }
-  // };
+    const formData = new FormData();
+    formData.append("profile_picture", file);
+
+    try {
+      setIsLoading(true);
+      const response = await client.post(
+        `${process.env.REACT_APP_API_LINK}/profile/change-picture/`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        }
+      );
+      const updatedUser = { ...user, avatar_url: response.data.avatar_url };
+      setUser(updatedUser);
+      window.location.reload();
+      notifySuccess("Profile picture updated!");
+    } catch (error) {
+      notifyError("Failed to update profile picture.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const openFileExplorer = () => {
-    fileInputRef.current.click();
+    fileInputRef.current?.click();
   };
 
   const onSubmit = async (data) => {
     try {
-      await client
-        .put(`${process.env.REACT_APP_API_LINK}/users/${user.id}/`, data, {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        })
-        .then((response) => {
-          console.log(response.data);
-          setUser(response.data);
+      setIsLoading(true);
+
+      // 1️⃣ Update user metadata in Supabase Auth
+      const { data: updatedData, error: supabaseError } =
+        await supabase.auth.updateUser({
+          email: data.email, // optional: include if you allow email change
+          data: {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            phone_number: data.phone_number,
+          },
         });
+
+      if (supabaseError) {
+        console.error("Supabase update error:", supabaseError);
+        notifyError("Failed to update Supabase user profile.");
+        return;
+      }
+
+      // 2️⃣ Refresh user session to get latest metadata
+      const { data: refreshedUser, error: fetchError } =
+        await supabase.auth.getUser();
+
+      if (fetchError) {
+        console.error("Fetch updated user error:", fetchError);
+        notifyError("Failed to fetch updated user data.");
+        return;
+      }
+
+      // 3️⃣ Update user in your context/local state
+      setUser(refreshedUser.user);
       notifySuccess("Profile updated successfully!");
     } catch (error) {
+      console.error("Update profile error:", error);
       notifyError("Failed to update profile.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <>
-      <h1 className="font-bold font-sans text-2xl text-center mt-6 ">
-        My Profile
-      </h1>
-      <div className="flex justify-center items-center mt-5 ">
-        <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 m-0 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 py-10">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-8">
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          My Profile
+        </h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* Left Column */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center border-r border-gray-200">
             <div className="relative mb-6">
-              {/* <img
-                src={profile.url}
+              <img
+                src={
+                  user.avatar_url ||
+                  "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                }
                 alt="Profile"
-                className="w-32 h-32 rounded-full mx-auto mb-2 object-cover"
-              /> */}
-              <i
-                className="fi fi-tr-camera text-white bg-blue-500 rounded-full p-2 absolute bottom-2 left-1/2 transform -translate-x-1/2 text-base shadow-lg cursor-pointer"
+                className="w-36 h-36 rounded-full object-cover border-4 border-blue-500 shadow-md"
+              />
+              <button
                 onClick={openFileExplorer}
-              ></i>
+                className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition"
+              >
+                <FaCamera />
+              </button>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -123,95 +161,105 @@ const Profile = () => {
                 onChange={handleImageChange}
               />
             </div>
-            <button
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mt-4"
-              onClick={handleOpenPasswordModal}
-            >
-              Change Password
-            </button>
-            <button
-              onClick={() => handleDelete(user.id)}
-              className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 mt-2"
-            >
-              Delete Account
-            </button>
+
+            <p className="text-lg font-semibold text-gray-700">
+              {user.first_name} {user.last_name}
+            </p>
+            <p className="text-gray-500">@{user.phone_number}</p>
+            <p className="text-sm text-gray-400 mt-1">{user.email}</p>
+
+            <div className="mt-6 space-y-3 w-full">
+              <button
+                onClick={handleOpenPasswordModal}
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition"
+              >
+                <FaLock /> Change Password
+              </button>
+              <button
+                onClick={() => handleDelete(user.id)}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition disabled:opacity-70"
+              >
+                <FaTrashAlt /> {isLoading ? "Deleting..." : "Delete Account"}
+              </button>
+            </div>
           </div>
 
-          {/* Right Column */}
+          {/* Right Column - Update Form */}
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="grid grid-cols-1 gap-4"
+            className="grid grid-cols-1 gap-5"
           >
-            <div className="mb-4">
-              <label htmlFor="first_name" className="block text-sm font-medium">
+            <div>
+              <label className="text-sm font-medium text-gray-700">
                 First Name
               </label>
               <input
-                type="text"
-                name="first_name"
-                id="first_name"
                 {...register("first_name", {
                   required: "First name is required",
                 })}
-                className="w-full border rounded px-2 py-1 mt-1"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               {errors.first_name && (
-                <p className="text-red-500">{errors.first_name.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.first_name.message}
+                </p>
               )}
             </div>
-            <div className="mb-4">
-              <label htmlFor="last_name" className="block text-sm font-medium">
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
                 Last Name
               </label>
               <input
-                type="text"
-                name="last_name"
-                id="last_name"
                 {...register("last_name", {
                   required: "Last name is required",
                 })}
-                className="w-full border rounded px-2 py-1 mt-1"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               {errors.last_name && (
-                <p className="text-red-500">{errors.last_name.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.last_name.message}
+                </p>
               )}
             </div>
-            <div className="mb-4">
-              <label htmlFor="username" className="block text-sm font-medium">
-                Username
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Phone Number
               </label>
               <input
-                type="text"
-                name="username"
-                id="username"
-                {...register("username", { required: "Username is required" })}
-                className="w-full border rounded px-2 py-1 mt-1"
+                {...register("phone_number", {
+                  required: "Phone Number is required",
+                })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
-              {errors.username && (
-                <p className="text-red-500">{errors.username.message}</p>
+              {errors.phone_number && (
+                <p className="text-red-500 text-sm">
+                  {errors.phone_number.message}
+                </p>
               )}
             </div>
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium">
-                Email
-              </label>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
-                name="email"
-                id="email"
                 {...register("email", { required: "Email is required" })}
-                className="w-full border rounded px-2 py-1 mt-1"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               {errors.email && (
-                <p className="text-red-500">{errors.email.message}</p>
+                <p className="text-red-500 text-sm">{errors.email.message}</p>
               )}
             </div>
-            {/* Update Button */}
+
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 mt-2"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition mt-4 disabled:opacity-70"
             >
-              Update Profile
+              <FaUserEdit />
+              {isLoading ? "Updating..." : "Update Profile"}
             </button>
           </form>
         </div>
@@ -223,7 +271,7 @@ const Profile = () => {
           onClose={handleClosePasswordModal}
         />
       )}
-    </>
+    </div>
   );
 };
 

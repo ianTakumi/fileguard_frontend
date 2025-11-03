@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { FiHome, FiFileText, FiUsers, FiCloud, FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import client from "../../../../utils/client";
-import { notifyError, notifySuccess } from "../../../../utils/Helpers";
+import { getUser, notifyError, notifySuccess } from "../../../../utils/Helpers";
 import ProgressBar from "@ramonak/react-progress-bar";
 
 const Sidebar = () => {
@@ -11,12 +11,14 @@ const Sidebar = () => {
   const [totalSize, setTotalSize] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
-  const formRef = useRef(null);
   const navigate = useNavigate();
+  const user = getUser();
 
   const fetchTotalSize = async () => {
     try {
-      const response = await client.post("/get-tot-file-size/");
+      const response = await client.post("/files/total-size/", {
+        user_id: user.id,
+      });
       setTotalSize(response.data.total_size);
     } catch (error) {
       notifyError("Failed to fetch total upload size");
@@ -36,36 +38,72 @@ const Sidebar = () => {
   };
 
   const handleFileChange = (event) => {
-    const files = event.target.files;
-    const formData = new FormData(formRef.current);
-    for (let i = 0; i < files.length; i++) {
-      formData.append("files", files[i]);
-    }
-    uploadFiles(formData);
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
+    uploadFiles(files);
+
+    // Reset file input
+    event.target.value = "";
   };
 
-  const uploadFiles = async (formData) => {
+  const uploadFiles = async (files) => {
     setUploading(true);
+    setProgress(0);
+
     try {
-      const response = await client.post("/upload/", formData, {
-        onUploadProgress: (progressEvent) => {
-          const total = progressEvent.total;
-          const current = progressEvent.loaded;
-          const percentCompleted = Math.floor((current / total) * 100);
-          setProgress(percentCompleted);
-        },
-        headers: {
-          Accept: "application/json",
-          "Content-Type": undefined,
-        },
-        withCredentials: true,
+      const formData = new FormData();
+      formData.append("user_id", user.id);
+
+      // Append all files
+      files.forEach((file) => {
+        formData.append("files", file);
       });
 
-      notifySuccess("File(s) uploaded successfully!", response.data);
+      const response = await client.post("/files/", formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.floor(
+              (progressEvent.loaded / progressEvent.total) * 100
+            );
+            setProgress(percentCompleted);
+          }
+        },
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        const fileCount =
+          response.data.total_created ||
+          response.data.created_files?.length ||
+          1;
+        notifySuccess(`${fileCount} file(s) uploaded successfully!`);
+        fetchTotalSize();
+        if (response.data.errors && response.data.errors.length > 0) {
+          response.data.errors.forEach((error) => {
+            notifyError(`Failed to upload ${error.file_name}: ${error.error}`);
+          });
+        }
+      } else {
+        notifyError("Upload failed");
+      }
+
       fetchTotalSize();
     } catch (error) {
-      notifyError("Something went wrong");
-      console.error(error.message);
+      console.error("Upload error:", error);
+
+      // Better error handling
+      if (error.code === "ERR_NETWORK") {
+        notifyError(
+          "Network error: Cannot connect to server. Please check your connection."
+        );
+      } else if (error.response?.data?.error) {
+        notifyError(`Upload failed: ${error.response.data.error}`);
+      } else {
+        notifyError("Upload failed. Please try again.");
+      }
     } finally {
       setUploading(false);
       setProgress(0);
@@ -104,34 +142,34 @@ const Sidebar = () => {
               onClick={() => handleMenuOptionClick("Upload File")}
               className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
             >
-              Upload File
+              Upload File(s)
             </button>
           </div>
         )}
       </div>
 
-      {/* File Upload Form (Hidden Input) */}
-      <form ref={formRef} encType="multipart/form-data">
-        <input
-          type="file"
-          multiple
-          ref={fileInputRef}
-          className="hidden"
-          onChange={handleFileChange}
-        />
-      </form>
+      {/* File Upload Input */}
+      <input
+        type="file"
+        multiple
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
       {/* Upload Progress */}
       {uploading && (
-        <div className="mb-4">
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex justify-between text-sm text-gray-600 mb-1">
+            <span>Uploading {progress < 50 ? "& encrypting..." : "..."}</span>
+            <span>{progress}%</span>
+          </div>
           <ProgressBar
             completed={progress}
-            height="20px"
-            bgColor={progress < 50 ? "#facc15" : "#4caf50"}
+            height="12px"
+            bgColor={progress < 50 ? "#f59e0b" : "#10b981"}
+            borderRadius="4px"
           />
-          <p className="text-sm text-center mt-1 text-gray-600">
-            {progress < 50 ? "Encrypting the file..." : "Uploading..."}
-          </p>
         </div>
       )}
 
@@ -175,9 +213,12 @@ const Sidebar = () => {
         </p>
         <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500"
+            className="h-full bg-blue-500 transition-all duration-300"
             style={{
-              width: `${(totalSize / (15 * 1024 * 1024 * 1024)) * 100}%`,
+              width: `${Math.min(
+                (totalSize / (15 * 1024 * 1024 * 1024)) * 100,
+                100
+              )}%`,
             }}
           ></div>
         </div>
