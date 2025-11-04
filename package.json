@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@amcharts/amcharts5": "^5.14.3",
+    "@paypal/react-paypal-js": "^8.9.2",
     "@ramonak/react-progress-bar": "^5.4.0",
     "@reduxjs/toolkit": "^2.9.0",
     "@supabase/supabase-js": "^2.76.1",
@@ -32,6 +33,7 @@
     "react-router-dom": "^7.9.3",
     "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
+    "redux-persist": "^6.0.0",
     "sweetalert2": "^11.26.3",
     "swiper": "^12.0.3",
     "tailwindcss": "^4.1.16"

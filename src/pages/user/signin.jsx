@@ -6,15 +6,15 @@ import {
   notifyError,
   notifySuccess,
   getBorderColor,
-  authenticate,
 } from "../../utils/Helpers";
-import { motion } from "framer-motion";
 import { useDispatch } from "react-redux";
+import { setUser } from "../../redux/slices/userSlice";
+import { motion } from "framer-motion";
 
 const SignIn = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false); // ✅ NEW STATE
-
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
@@ -42,9 +42,8 @@ const SignIn = () => {
 
       if (user) {
         const role = user.user_metadata?.role || "user";
-
+        dispatch(setUser(loginData));
         notifySuccess("Sign-in successful!");
-        authenticate(loginData);
         reset();
 
         if (role === "admin") {
@@ -57,7 +56,7 @@ const SignIn = () => {
       console.error(error);
       notifyError("Sign-in failed. Please check your credentials.");
     } finally {
-      setLoading(false); // ✅ Re-enable button
+      setLoading(false);
     }
   };
 

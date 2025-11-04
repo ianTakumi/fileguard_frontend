@@ -13,21 +13,18 @@ import {
   Star,
 } from "lucide-react";
 import client from "../../../utils/client";
-import { getUser, notifyError, notifySuccess } from "../../../utils/Helpers";
+import { notifyError, notifySuccess } from "../../../utils/Helpers";
+import { useSelector } from "react-redux";
 
 const FileGuardDrive = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("list");
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const user = useSelector((state) => state.user.user);
 
-  // Get current user
-  const currentUser = getUser();
-
-  // Fetch files from API
-  // Sa fetchFiles function, after setFiles
   const fetchFiles = async () => {
-    if (!currentUser?.id) {
+    if (!user?.id) {
       notifyError("User not found. Please log in again.");
       setLoading(false);
       return;
@@ -35,7 +32,7 @@ const FileGuardDrive = () => {
 
     try {
       setLoading(true);
-      const response = await client.get(`/files/?user_id=${currentUser.id}`);
+      const response = await client.get(`/files/?user_id=${user.id}`);
 
       if (response.data && Array.isArray(response.data)) {
         // Sort files: starred first, then by date or name
@@ -70,14 +67,14 @@ const FileGuardDrive = () => {
 
   // Toggle star/unstar file
   const toggleStar = async (fileId, currentStarStatus) => {
-    if (!currentUser?.id) {
+    if (!user?.id) {
       notifyError("User not found");
       return;
     }
 
     try {
       const response = await client.post(`/files/${fileId}/toggle-star/`, {
-        user_id: currentUser.id,
+        user_id: user.id,
       });
 
       if (response.data.success) {
@@ -102,13 +99,13 @@ const FileGuardDrive = () => {
   // Handle file upload
   const handleFileUpload = async (event) => {
     const selectedFiles = event.target.files;
-    if (!selectedFiles.length || !currentUser?.id) return;
+    if (!selectedFiles.length || !user?.id) return;
 
     const formData = new FormData();
     for (let i = 0; i < selectedFiles.length; i++) {
       formData.append("files", selectedFiles[i]);
     }
-    formData.append("user_id", currentUser.id);
+    formData.append("user_id", user.id);
     formData.append("is_private", true);
 
     try {
@@ -183,7 +180,7 @@ const FileGuardDrive = () => {
 
   // Handle file delete
   const handleDelete = async (fileId) => {
-    if (!currentUser?.id) {
+    if (!user?.id) {
       notifyError("User not found");
       return;
     }
@@ -268,8 +265,7 @@ const FileGuardDrive = () => {
                   FileGuard Drive
                 </h1>
                 <p className="text-slate-600">
-                  Welcome,{" "}
-                  {currentUser?.username || currentUser?.email || "User"}
+                  Welcome, {user?.username || user?.email || "User"}
                 </p>
               </div>
             </div>
@@ -471,7 +467,7 @@ const FileGuardDrive = () => {
                             {file.name}
                           </span>
                           <span className="text-xs text-slate-500">
-                            {file.user_id === currentUser?.id
+                            {file.user_id === user?.id
                               ? "Owned by you"
                               : "Shared with you"}
                           </span>
@@ -527,7 +523,7 @@ const FileGuardDrive = () => {
                                 <Share2 className="w-4 h-4" />
                                 Share
                               </button>
-                              {file.user_id === currentUser?.id && (
+                              {file.user_id === user?.id && (
                                 <button
                                   onClick={() => handleDelete(file.id)}
                                   className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3"

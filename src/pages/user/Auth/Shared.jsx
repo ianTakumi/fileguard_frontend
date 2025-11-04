@@ -1,7 +1,20 @@
 import React, { useState } from "react";
-import { Download, MoreVertical, FileText, FileSpreadsheet, Archive, Search, Filter, Grid, List } from "lucide-react";
-
+import {
+  Download,
+  MoreVertical,
+  FileText,
+  FileSpreadsheet,
+  Archive,
+  Search,
+  Filter,
+  Grid,
+  List,
+} from "lucide-react";
+import { useSelector } from "react-redux";
+import { formatDate } from "../../../utils/Helpers";
 const Shared = () => {
+  const user = useSelector((state) => state.user.user);
+
   const [sharedFiles, setSharedFiles] = useState([
     {
       id: 1,
@@ -76,27 +89,10 @@ const Shared = () => {
       size: "6.1 MB",
     },
   ]);
-  
+
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("list");
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
 
   const getFileIcon = (fileType) => {
     const iconProps = { className: "w-5 h-5" };
@@ -129,7 +125,11 @@ const Shared = () => {
   };
 
   const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   const handleDecrypt = async (fileId) => {
@@ -141,9 +141,10 @@ const Shared = () => {
     setActiveDropdown(activeDropdown === fileId ? null : fileId);
   };
 
-  const filteredFiles = sharedFiles.filter(file =>
-    file.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    file.username.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFiles = sharedFiles.filter(
+    (file) =>
+      file.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      file.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -153,15 +154,19 @@ const Shared = () => {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">Shared with me</h1>
-              <p className="text-gray-500 text-sm">{filteredFiles.length} files shared by your team</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                Shared with me
+              </h1>
+              <p className="text-gray-500 text-sm">
+                {filteredFiles.length} files shared to you
+              </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setViewMode("list")}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "list" 
-                    ? "bg-blue-50 text-blue-600" 
+                  viewMode === "list"
+                    ? "bg-blue-50 text-blue-600"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -170,8 +175,8 @@ const Shared = () => {
               <button
                 onClick={() => setViewMode("grid")}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === "grid" 
-                    ? "bg-blue-50 text-blue-600" 
+                  viewMode === "grid"
+                    ? "bg-blue-50 text-blue-600"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -227,15 +232,26 @@ const Shared = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredFiles.map((file) => (
-                    <tr key={file.id} className="hover:bg-gray-50 transition-colors group">
+                    <tr
+                      key={file.id}
+                      className="hover:bg-gray-50 transition-colors group"
+                    >
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg border flex items-center justify-center ${getFileColor(file.file_type)}`}>
+                          <div
+                            className={`w-10 h-10 rounded-lg border flex items-center justify-center ${getFileColor(
+                              file.file_type
+                            )}`}
+                          >
                             {getFileIcon(file.file_type)}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{file.file_name}</p>
-                            <p className="text-xs text-gray-500 uppercase">{file.file_type}</p>
+                            <p className="font-medium text-gray-900">
+                              {file.file_name}
+                            </p>
+                            <p className="text-xs text-gray-500 uppercase">
+                              {file.file_type}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -244,14 +260,20 @@ const Shared = () => {
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold">
                             {getInitials(file.username)}
                           </div>
-                          <span className="text-sm text-gray-700">{file.username}</span>
+                          <span className="text-sm text-gray-700">
+                            {file.username}
+                          </span>
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="text-sm text-gray-600">{formatDate(file.shared_date)}</span>
+                        <span className="text-sm text-gray-600">
+                          {formatDate(file.shared_date)}
+                        </span>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="text-sm text-gray-600">{file.size}</span>
+                        <span className="text-sm text-gray-600">
+                          {file.size}
+                        </span>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
@@ -290,9 +312,16 @@ const Shared = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6">
               {filteredFiles.map((file) => (
-                <div key={file.id} className="group border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all hover:border-blue-300 bg-white">
+                <div
+                  key={file.id}
+                  className="group border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all hover:border-blue-300 bg-white"
+                >
                   <div className="flex items-start justify-between mb-3">
-                    <div className={`w-12 h-12 rounded-lg border flex items-center justify-center ${getFileColor(file.file_type)}`}>
+                    <div
+                      className={`w-12 h-12 rounded-lg border flex items-center justify-center ${getFileColor(
+                        file.file_type
+                      )}`}
+                    >
                       {getFileIcon(file.file_type)}
                     </div>
                     <button
@@ -302,13 +331,19 @@ const Shared = () => {
                       <MoreVertical className="w-4 h-4 text-gray-600" />
                     </button>
                   </div>
-                  <h3 className="font-medium text-gray-900 mb-1 truncate">{file.file_name}</h3>
-                  <p className="text-xs text-gray-500 mb-3">{file.size} • {formatDate(file.shared_date)}</p>
+                  <h3 className="font-medium text-gray-900 mb-1 truncate">
+                    {file.file_name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-3">
+                    {file.size} • {formatDate(file.shared_date)}
+                  </p>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold">
                       {getInitials(file.username)}
                     </div>
-                    <span className="text-xs text-gray-600 truncate">{file.username}</span>
+                    <span className="text-xs text-gray-600 truncate">
+                      {file.username}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -321,7 +356,9 @@ const Shared = () => {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileText className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">No files found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">
+              No files found
+            </h3>
             <p className="text-gray-500">Try adjusting your search criteria</p>
           </div>
         )}

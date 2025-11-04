@@ -1,94 +1,57 @@
 import React, { useState } from "react";
-import { Upload, Search, MoreVertical, Download, Share2, Trash2, Lock } from "lucide-react";
+import {
+  FaUpload,
+  FaSearch,
+  FaEllipsisV,
+  FaDownload,
+  FaShare,
+  FaTrash,
+  FaLock,
+  FaFolder,
+  FaStar,
+  FaFilePdf,
+  FaFileExcel,
+  FaFileWord,
+  FaFileImage,
+  FaFile,
+} from "react-icons/fa";
+import { formatDate } from "../../../utils/Helpers";
 
 const Files = () => {
-  const [files, setFiles] = useState([
-    {
-      id: 1,
-      file_name: "Project_Proposal_2025.pdf",
-      file_type: "pdf",
-      file_size: "2.4 MB",
-      upload_date: "2025-10-20T14:30:00",
-    },
-    {
-      id: 2,
-      file_name: "Financial_Report_Q3.xlsx",
-      file_type: "xlsx",
-      file_size: "1.8 MB",
-      upload_date: "2025-10-18T09:15:00",
-    },
-    {
-      id: 3,
-      file_name: "Meeting_Notes.docx",
-      file_type: "docx",
-      file_size: "456 KB",
-      upload_date: "2025-10-15T16:45:00",
-    },
-    {
-      id: 4,
-      file_name: "Presentation_Slides.pdf",
-      file_type: "pdf",
-      file_size: "5.2 MB",
-      upload_date: "2025-10-12T11:20:00",
-    },
-    {
-      id: 5,
-      file_name: "Team_Photo.jpg",
-      file_type: "jpg",
-      file_size: "3.1 MB",
-      upload_date: "2025-10-10T13:00:00",
-    },
-    {
-      id: 6,
-      file_name: "Budget_Template.xlsx",
-      file_type: "xlsx",
-      file_size: "892 KB",
-      upload_date: "2025-10-08T10:30:00",
-    },
-    {
-      id: 7,
-      file_name: "Contract_Agreement.pdf",
-      file_type: "pdf",
-      file_size: "1.2 MB",
-      upload_date: "2025-10-05T15:10:00",
-    },
-    {
-      id: 8,
-      file_name: "Marketing_Strategy.docx",
-      file_type: "docx",
-      file_size: "678 KB",
-      upload_date: "2025-10-01T08:45:00",
-    },
-  ]);
-  
+  const [files, setFiles] = useState([]);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const currentUser = { id: 1 }; // Mock current user
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
-    });
+  const getFileIcon = (fileName) => {
+    const extension = fileName.split(".").pop().toLowerCase();
+    switch (extension) {
+      case "pdf":
+        return <FaFilePdf className="text-red-500" />;
+      case "docx":
+      case "doc":
+        return <FaFileWord className="text-blue-500" />;
+      case "xlsx":
+      case "xls":
+        return <FaFileExcel className="text-green-500" />;
+      case "jpg":
+      case "jpeg":
+      case "png":
+      case "gif":
+        return <FaFileImage className="text-purple-500" />;
+      default:
+        return <FaFile className="text-slate-500" />;
+    }
   };
 
-  const getFileTypeColor = (fileType) => {
-    switch (fileType) {
-      case "pdf":
-        return "bg-red-50 text-red-600 border-red-200";
-      case "docx":
-        return "bg-blue-50 text-blue-600 border-blue-200";
-      case "xlsx":
-        return "bg-green-50 text-green-600 border-green-200";
-      case "jpg":
-      case "png":
-        return "bg-purple-50 text-purple-600 border-purple-200";
-      default:
-        return "bg-gray-50 text-gray-600 border-gray-200";
-    }
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const handleFileChange = (event) => {
@@ -111,8 +74,20 @@ const Files = () => {
     }
   };
 
-  const handleDecrypt = (fileId) => {
-    alert(`Decrypting file ID: ${fileId}`);
+  const handleFileUpload = (event) => {
+    handleFileChange(event);
+  };
+
+  const toggleStar = (fileId, currentStarred) => {
+    setFiles((prevFiles) =>
+      prevFiles.map((file) =>
+        file.id === fileId ? { ...file, isStarred: !currentStarred } : file
+      )
+    );
+  };
+
+  const handleDownload = (file) => {
+    alert(`Downloading file: ${file.name}`);
     setActiveDropdown(null);
   };
 
@@ -133,8 +108,8 @@ const Files = () => {
     setActiveDropdown(activeDropdown === fileId ? null : fileId);
   };
 
-  const filteredFiles = files.filter(file =>
-    file.file_name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFiles = files.filter((file) =>
+    file.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -142,8 +117,12 @@ const Files = () => {
       <div className="max-w-7xl mx-auto p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">File Manager</h1>
-          <p className="text-slate-600">Manage and organize your documents securely</p>
+          <h1 className="text-4xl font-bold text-slate-800 mb-2">
+            File Manager
+          </h1>
+          <p className="text-slate-600">
+            Manage and organize your documents securely
+          </p>
         </div>
 
         {/* Action Bar */}
@@ -151,7 +130,7 @@ const Files = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search files..."
@@ -166,7 +145,7 @@ const Files = () => {
               onClick={() => document.getElementById("file-upload").click()}
               className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
             >
-              <Upload className="w-5 h-5" />
+              <FaUpload className="w-5 h-5" />
               Upload Files
             </button>
             <input
@@ -180,75 +159,147 @@ const Files = () => {
         </div>
 
         {/* Files Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
+        {files.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
+            <FaFolder className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-slate-600 mb-2">
+              No files yet
+            </h3>
+            <p className="text-slate-500 mb-6">
+              Upload your first file to get started
+            </p>
+            <input
+              type="file"
+              id="empty-upload"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <label
+              htmlFor="empty-upload"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg inline-flex items-center gap-2 font-medium cursor-pointer"
+            >
+              <FaUpload className="w-5 h-5" />
+              Upload Your First File
+            </label>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Name</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Type</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Size</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-slate-700">Modified</th>
-                  <th className="text-right py-4 px-6 text-sm font-semibold text-slate-700">Actions</th>
+                <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700 w-12"></th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">
+                    Name
+                  </th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">
+                    Size
+                  </th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-700">
+                    Status
+                  </th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-slate-700">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
-                {filteredFiles.map((file) => (
+              <tbody>
+                {filteredFiles.map((file, index) => (
                   <tr
                     key={file.id}
-                    className="hover:bg-slate-50 transition-colors"
+                    className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                      index === filteredFiles.length - 1 ? "border-b-0" : ""
+                    }`}
                   >
-                    <td className="py-4 px-6">
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => toggleStar(file.id, file.isStarred)}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        <FaStar
+                          className={`w-5 h-5 ${
+                            file.isStarred
+                              ? "text-yellow-500 fill-yellow-500"
+                              : "text-slate-300"
+                          }`}
+                        />
+                      </button>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg border flex items-center justify-center ${getFileTypeColor(file.file_type)}`}>
-                          <span className="text-xs font-bold uppercase">
-                            {file.file_type}
+                        <div className="w-11 h-11 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-xl">
+                          {getFileIcon(file.name)}
+                        </div>
+                        <div>
+                          <span className="font-medium text-slate-800 block">
+                            {file.name}
                           </span>
                         </div>
-                        <span className="font-medium text-slate-800">{file.file_name}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="text-slate-600 text-sm uppercase">{file.file_type}</span>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {formatFileSize(file.size)}
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="text-slate-600 text-sm">{file.file_size}</span>
+                    <td className="px-6 py-4">
+                      {file.is_private ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+                          <span className="text-sm text-slate-600">
+                            Private
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm text-slate-600">Shared</span>
+                        </div>
+                      )}
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="text-slate-600 text-sm">{formatDate(file.upload_date)}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex justify-end">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleDownload(file)}
+                          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        >
+                          <FaDownload className="w-4 h-4 text-slate-600" />
+                        </button>
+                        <button
+                          onClick={() => handleShare(file.id)}
+                          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        >
+                          <FaShare className="w-4 h-4 text-slate-600" />
+                        </button>
                         <div className="relative">
                           <button
                             onClick={() => toggleDropdown(file.id)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                           >
-                            <MoreVertical className="w-5 h-5 text-slate-600" />
+                            <FaEllipsisV className="w-4 h-4 text-slate-600" />
                           </button>
                           {activeDropdown === file.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-20 overflow-hidden">
                               <button
-                                onClick={() => handleDecrypt(file.id)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-3 text-slate-700 hover:bg-slate-50 transition-colors"
+                                onClick={() => handleDownload(file)}
+                                className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3"
                               >
-                                <Lock className="w-4 h-4" />
-                                <span className="text-sm">Decrypt</span>
+                                <FaDownload className="w-4 h-4" />
+                                Download
                               </button>
                               <button
                                 onClick={() => handleShare(file.id)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-3 text-slate-700 hover:bg-slate-50 transition-colors"
+                                className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3"
                               >
-                                <Share2 className="w-4 h-4" />
-                                <span className="text-sm">Share</span>
+                                <FaShare className="w-4 h-4" />
+                                Share
                               </button>
-                              <button
-                                onClick={() => handleDelete(file.id)}
-                                className="flex items-center gap-3 w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                <span className="text-sm">Delete</span>
-                              </button>
+                              {file.user_id === currentUser?.id && (
+                                <button
+                                  onClick={() => handleDelete(file.id)}
+                                  className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3"
+                                >
+                                  <FaTrash className="w-4 h-4" />
+                                  Delete
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -259,13 +310,7 @@ const Files = () => {
               </tbody>
             </table>
           </div>
-
-          {filteredFiles.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-slate-500">No files found</p>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* File Count */}
         <div className="mt-4 text-sm text-slate-600">

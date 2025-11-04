@@ -16,6 +16,7 @@ import AuthUserLayout from "./components/User/Auth/Layout";
 import AuthFiles from "./pages/user/Auth/Files";
 import AuthProfile from "./pages/user/Auth/Profile";
 import AuthSharedPage from "./pages/user/Auth/Shared";
+import AuthSubscriptions from "./pages/user/Auth/Subscriptions";
 
 // Layouts and pages for admin
 import AdminLayout from "./components/Admin/Layout";
@@ -46,6 +47,7 @@ function App() {
           <Route path="files" element={<AuthFiles />}></Route>
           <Route path="profile" element={<AuthProfile />}></Route>
           <Route path="shared-with-me" element={<AuthSharedPage />}></Route>
+          <Route path="subscriptions" element={<AuthSubscriptions />} />
         </Route>
         {/* Routes for admin */}
         <Route path="/admin" element={<AdminLayout />}>

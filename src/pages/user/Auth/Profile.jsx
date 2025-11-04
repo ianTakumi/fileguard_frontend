@@ -1,22 +1,17 @@
 import React, { useState, useRef } from "react";
-import {
-  getUser,
-  notifyError,
-  notifySuccess,
-  setUser,
-} from "../../../utils/Helpers";
+import { notifyError, notifySuccess, setUser } from "../../../utils/Helpers";
 import ChangePassword from "../../../components/User/Auth/Modals/ChangePassword";
 import client from "../../../utils/client";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { FaCamera, FaTrashAlt, FaUserEdit, FaLock } from "react-icons/fa";
 import supabase from "../../../utils/supabase";
+import { useSelector } from "react-redux";
 
 const Profile = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const user = getUser();
-  console.log(user);
+  const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 

@@ -2,8 +2,15 @@ import React, { useState, useRef, useEffect } from "react";
 import { FiHome, FiFileText, FiUsers, FiCloud, FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import client from "../../../../utils/client";
-import { getUser, notifyError, notifySuccess } from "../../../../utils/Helpers";
+import {
+  getUser,
+  notifyError,
+  notifySuccess,
+  formatStorageSize,
+  formatBytes,
+} from "../../../../utils/Helpers";
 import ProgressBar from "@ramonak/react-progress-bar";
+import { useSelector } from "react-redux";
 
 const Sidebar = () => {
   const [progress, setProgress] = useState(0);
@@ -12,13 +19,14 @@ const Sidebar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const user = getUser();
+  const user = useSelector((state) => state.user.user);
 
   const fetchTotalSize = async () => {
     try {
       const response = await client.post("/files/total-size/", {
         user_id: user.id,
       });
+      console.log("total size", response.data.total_size);
       setTotalSize(response.data.total_size);
     } catch (error) {
       notifyError("Failed to fetch total upload size");
@@ -202,25 +210,42 @@ const Sidebar = () => {
 
       <hr className="border-gray-200 mb-4" />
 
-      {/* Storage Info */}
-      <div>
+      {/* Storage Info - Banner Style Upgrade */}
+      <div className="bg-white rounded-lg p-4 border border-gray-200">
         <div className="flex items-center gap-2 mb-2 text-gray-700">
           <FiCloud className="w-5 h-5 text-gray-600" />
-          <span>Storage</span>
+          <span className="font-medium">Storage</span>
         </div>
-        <p className="text-sm text-gray-500 mb-2">
-          {(totalSize / (1024 * 1024)).toFixed(2)} MB of 15 GB used
+
+        <p className="text-sm text-gray-500 mb-3">
+          {formatBytes(totalSize)} of 5 GB used
         </p>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+
+        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
           <div
             className="h-full bg-blue-500 transition-all duration-300"
             style={{
               width: `${Math.min(
-                (totalSize / (15 * 1024 * 1024 * 1024)) * 100,
+                (totalSize / (5 * 1024 * 1024 * 1024)) * 100,
                 100
               )}%`,
             }}
           ></div>
+        </div>
+
+        <div className="text-xs text-gray-500 text-center">
+          {((totalSize / (5 * 1024 * 1024 * 1024)) * 100).toFixed(2)}% used
+        </div>
+
+        {/* Simple Upgrade Link */}
+        <div className="text-center mt-2">
+          <button
+            className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-all duration-200 cursor-pointer relative group"
+            onClick={() => navigate("/drive/subscriptions")}
+          >
+            Upgrade storage for more space
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
+          </button>
         </div>
       </div>
     </div>

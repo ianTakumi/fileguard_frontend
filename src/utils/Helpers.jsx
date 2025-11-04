@@ -72,10 +72,13 @@ export const notifyError = (message) => {
   });
 };
 
-// Format Date
 export const formatDate = (dateString) => {
-  const options = { year: "numeric", month: "long", day: "numeric" };
-  return new Date(dateString).toLocaleDateString(undefined, options);
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
 export const getBorderColor = (fieldName, errors, touchedFields) => {
@@ -86,4 +89,26 @@ export const getBorderColor = (fieldName, errors, touchedFields) => {
     return "border-green-500"; // Green border for successful validation after interaction
   }
   return "border-gray-200"; // Gray border by default
+};
+
+// Dagdag na helper function
+export const formatStorageSize = (bytes) => {
+  if (bytes === 0) return "0 GB";
+
+  const GB = bytes / (1024 * 1024 * 1024);
+  if (GB < 0.001) {
+    const MB = bytes / (1024 * 1024);
+    return `${MB.toFixed(2)} MB`;
+  }
+  return `${GB.toFixed(4)} GB`;
+};
+
+export const formatBytes = (bytes) => {
+  if (bytes === 0) return "0 Bytes";
+
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };

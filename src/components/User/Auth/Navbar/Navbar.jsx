@@ -1,22 +1,30 @@
 import React, { useState } from "react";
 import { FiHelpCircle, FiMenu } from "react-icons/fi";
-import { getUser, notifySuccess, logout } from "../../../../utils/Helpers";
+import { notifySuccess, logout } from "../../../../utils/Helpers";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import supabase from "../../../../utils/supabase";
+import { useSelector, useDispatch } from "react-redux";
+import { clearUser } from "../../../../redux/slices/userSlice";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const user = getUser();
-
+  const user = useSelector((state) => state.user.user);
+  const dispatch = useDispatch();
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
-  const handleProfileClick = () => navigate("/drive/profile");
+  const handleProfileClick = () => {
+    setDropdownOpen(false);
+    setMenuOpen(false);
+    navigate("/drive/profile");
+  };
 
   const handleLogoutClick = () => {
+    setDropdownOpen(false); // close dropdown
+    setMenuOpen(false); // close mobile menu (optional)
     Swal.fire({
       title: "Are you sure?",
       text: "You will be logged out of your account!",
@@ -32,7 +40,7 @@ const Navbar = () => {
           console.error("Error signing out:", error.message);
         } else {
           notifySuccess("Logout Successfully!");
-          logout();
+          dispatch(clearUser());
           navigate("/");
         }
       }
@@ -57,11 +65,21 @@ const Navbar = () => {
         <div className="flex items-center gap-4 ml-auto">
           <FiHelpCircle className="text-gray-600 hover:text-gray-800 cursor-pointer w-5 h-5" />
 
-          <div className="relative">
+          <div className="flex items-center gap-3 relative">
+            {/* User Name */}
+            {user && (
+              <div className="hidden md:flex flex-col text-right">
+                <span className="text-sm font-semibold text-gray-800">
+                  {user.first_name} {user.last_name}
+                </span>
+                <span className="text-xs text-gray-500">{user.email}</span>
+              </div>
+            )}
+
+            {/* Profile Picture */}
             <img
               src={
-                user?.avatar_url ||
-                "https://i.ibb.co/MBtjqXQ/default-profile.png"
+                user?.avatar || "https://i.ibb.co/MBtjqXQ/default-profile.png"
               }
               alt="User Avatar"
               onClick={toggleDropdown}
@@ -70,7 +88,7 @@ const Navbar = () => {
 
             {/* Dropdown Menu */}
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+              <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                 <button
                   onClick={handleProfileClick}
                   className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
