@@ -12,9 +12,11 @@ import {
   MdPhone,
 } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
-import { logout } from "../../../utils/Helpers";
-import client from "../../../utils/client";
 import Swal from "sweetalert2";
+import { clearUser } from "../../../redux/slices/userSlice";
+import { useDispatch } from "react-redux";
+import supabase from "../../../utils/supabase";
+import { notifyError, notifySuccess } from "../../../utils/Helpers";
 
 const Sidebar = ({ isMinimized }) => {
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ const Sidebar = ({ isMinimized }) => {
     foods: false,
     users: false,
   });
-
+  const dispatch = useDispatch();
   const handleItemClick = (item) => setSelected(item);
 
   const toggleExpansion = (item) => {
@@ -47,16 +49,19 @@ const Sidebar = ({ isMinimized }) => {
 
     if (result.isConfirmed) {
       try {
-        await client.post(`${process.env.REACT_APP_API_LINK}/logout/`);
-        logout();
-        navigate("/");
-        Swal.fire(
-          "Logged Out!",
-          "You have been logged out successfully.",
-          "success"
-        );
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+          console.error("Error signing out:", error.message);
+          notifyError("Error signing out ");
+        } else {
+          dispatch(clearUser());
+          navigate("/");
+          notifySuccess("Successfully signed out ");
+        }
       } catch (error) {
-        Swal.fire("Error", "Failed to log out. Please try again.", "error");
+        console.log("Error signing out: ", error);
+        notifyError("Error signing out");
       }
     }
   };

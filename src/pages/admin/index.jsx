@@ -5,12 +5,12 @@ import BarChart from "../../components/Admin/Chart/BarChart";
 import LineChart from "../../components/Admin/Chart/LineChart";
 import PieChart from "../../components/Admin/Chart/PieChart";
 import Map from "../../components/Admin/Map";
-import { notifySuccess, notifyError, getUser } from "../../utils/Helpers";
+import { notifySuccess, notifyError } from "../../utils/Helpers";
 import client from "../../utils/client";
 
 const Home = () => {
   const loggedIn = useSelector((state) => state.user.loggedIn);
-  const user = getUser();
+  const user = useSelector((state) => state.user.user);
   const [userCount, setUserCount] = useState(0);
   const [contactCount, setContactCount] = useState(0);
   const [fileCount, setFileCount] = useState(0);
@@ -42,7 +42,7 @@ const Home = () => {
   const getNumberOfFiles = async () => {
     try {
       await client
-        .get("/files/count/", {
+        .get("/files/count-all/", {
           withCredentials: true,
         })
         .then((response) => {
@@ -50,15 +50,15 @@ const Home = () => {
           setFileCount(response.count);
         });
     } catch (err) {
-      notifyError("Error fetching number of contacts");
+      notifyError("Error fetching number of files");
       console.error("Error fetching number of contacts:", err);
     }
   };
 
   useEffect(() => {
-    // getNumberofUsers();
+    getNumberofUsers();
     getNumberOfContact();
-    // getNumberOfFiles();
+    getNumberOfFiles();
 
     if (loggedIn && user && user.is_superuser === true) {
       notifySuccess("Successfully logged in");

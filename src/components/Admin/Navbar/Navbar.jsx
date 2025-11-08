@@ -7,16 +7,18 @@ import {
   MdLogout,
 } from "react-icons/md";
 import { useNavigate, NavLink } from "react-router-dom";
-import { logout, getUser, notifySuccess } from "../../../utils/Helpers";
+import { notifySuccess } from "../../../utils/Helpers";
 import Swal from "sweetalert2";
 import supabase from "../../../utils/supabase";
+import { useSelector, useDispatch } from "react-redux";
+import { clearUser } from "../../../redux/slices/userSlice";
 
 const Navbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const user = getUser();
-
+  const user = useSelector((state) => state.user.user);
+  const dispatch = useDispatch();
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
@@ -38,9 +40,9 @@ const Navbar = ({ toggleSidebar }) => {
       if (error) {
         console.error("Error signing out:", error.message);
       } else {
-        notifySuccess("Logout Successfully!");
-        logout();
+        dispatch(clearUser());
         navigate("/");
+        notifySuccess("Logout Successfully!");
       }
     }
 

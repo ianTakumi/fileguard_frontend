@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import { FiEdit } from "react-icons/fi";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getUser } from "../../utils/Helpers";
 import ProfileModal from "../../components/Admin/Modal/Profile";
 import ChangePasswordModal from "../../components/Admin/Modal/ChangePasswordModal";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Profile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const user = getUser();
+  const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
   console.log(user);
   const handleEditProfile = () => setIsModalOpen(true);

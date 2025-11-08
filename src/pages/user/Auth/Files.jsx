@@ -1,167 +1,427 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  FaUpload,
-  FaSearch,
-  FaEllipsisV,
-  FaDownload,
-  FaShare,
-  FaTrash,
-  FaLock,
-  FaFolder,
-  FaStar,
-  FaFilePdf,
-  FaFileExcel,
-  FaFileWord,
-  FaFileImage,
-  FaFile,
-} from "react-icons/fa";
-import { formatDate } from "../../../utils/Helpers";
+  File,
+  Folder,
+  MoreVertical,
+  Download,
+  Trash2,
+  Share2,
+  Upload,
+  Grid,
+  List,
+  Filter,
+  Star,
+  X,
+  Copy,
+} from "lucide-react";
+import client from "../../../utils/client";
+import { notifyError, notifySuccess } from "../../../utils/Helpers";
+import { useSelector } from "react-redux";
+import ShareModal from "../../../components/User/Auth/Modals/ShareModal";
 
-const Files = () => {
+const FileGuardDrive = () => {
   const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState("list");
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const currentUser = { id: 1 }; // Mock current user
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [shareEmail, setShareEmail] = useState("");
+  const [sharePermission, setSharePermission] = useState("view");
+  const [shareLoading, setShareLoading] = useState(false);
+  const user = useSelector((state) => state.user.user);
 
-  const getFileIcon = (fileName) => {
-    const extension = fileName.split(".").pop().toLowerCase();
-    switch (extension) {
-      case "pdf":
-        return <FaFilePdf className="text-red-500" />;
-      case "docx":
-      case "doc":
-        return <FaFileWord className="text-blue-500" />;
-      case "xlsx":
-      case "xls":
-        return <FaFileExcel className="text-green-500" />;
-      case "jpg":
-      case "jpeg":
-      case "png":
-      case "gif":
-        return <FaFileImage className="text-purple-500" />;
-      default:
-        return <FaFile className="text-slate-500" />;
+  const fetchFiles = async () => {
+    if (!user?.id) {
+      notifyError("User not found. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await client.get(`/files/?user_id=${user.id}`);
+
+      if (response.data && Array.isArray(response.data)) {
+        const sortedFiles = response.data.sort((a, b) => {
+          if (a.isStarred && !b.isStarred) return -1;
+          if (!a.isStarred && b.isStarred) return 1;
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+
+        setFiles(sortedFiles);
+      } else {
+        console.error("Unexpected response format:", response.data);
+        setFiles([]);
+      }
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      notifyError("Failed to load files");
+      setFiles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFiles();
+  }, []);
+
+  const toggleStar = async (fileId, currentStarStatus) => {
+    if (!user?.id) {
+      notifyError("User not found");
+      return;
+    }
+
+    try {
+      const response = await client.post(`/files/${fileId}/toggle-star/`, {
+        user_id: user.id,
+      });
+
+      if (response.data.success) {
+        setFiles((prevFiles) =>
+          prevFiles.map((file) =>
+            file.id === fileId
+              ? { ...file, isStarred: response.data.isStarred }
+              : file
+          )
+        );
+        notifySuccess(
+          `File ${response.data.isStarred ? "starred" : "unstarred"}`
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling star:", error);
+      notifyError("Failed to update star status");
+    }
+  };
+
+  const handleFileUpload = async (event) => {
+    const selectedFiles = event.target.files;
+    if (!selectedFiles.length || !user?.id) return;
+
+    const formData = new FormData();
+    for (let i = 0; i < selectedFiles.length; i++) {
+      formData.append("files", selectedFiles[i]);
+    }
+    formData.append("user_id", user.id);
+    formData.append("is_private", true);
+
+    try {
+      const response = await client.post("/files/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        notifySuccess(
+          `Successfully uploaded ${response.data.total_created} file(s)`
+        );
+        fetchFiles();
+        event.target.value = "";
+      } else {
+        notifyError("Upload failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      notifyError("Upload failed");
+    }
+  };
+
+  const handleDownload = async (file) => {
+    try {
+      notifySuccess("Preparing download...");
+
+      const response = await client.get(`/files/${file.id}/download/`, {
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+
+      notifySuccess("Download completed");
+    } catch (error) {
+      console.error("Download error:", error);
+
+      if (error.response?.status === 404 || error.response?.status === 500) {
+        notifyError("Secure download failed, trying direct download...");
+
+        const link = document.createElement("a");
+        link.href = file.file;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        notifyError("Download failed");
+      }
+    }
+  };
+
+  const handleDelete = async (fileId) => {
+    if (!user?.id) {
+      notifyError("User not found");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this file?")) {
+      return;
+    }
+
+    try {
+      await client.delete(`/files/${fileId}/`);
+      notifySuccess("File deleted successfully");
+      fetchFiles();
+    } catch (error) {
+      console.error("Delete error:", error);
+      notifyError("Failed to delete file");
+    }
+  };
+
+  const openShareModal = (file) => {
+    setSelectedFile(file);
+    setShareEmail("");
+    setSharePermission("view");
+    setShareModalOpen(true);
+    setActiveDropdown(null);
+  };
+
+  const closeShareModal = () => {
+    setShareModalOpen(false);
+    setSelectedFile(null);
+    setShareEmail("");
+    setSharePermission("view");
+    setShareLoading(false);
+  };
+
+  const handleShareSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedFile || !shareEmail.trim()) {
+      notifyError("Please enter a valid email address");
+      return;
+    }
+
+    if (!user?.id) {
+      notifyError("User not found");
+      return;
+    }
+
+    setShareLoading(true);
+
+    try {
+      const response = await client.post(`/files/${selectedFile.id}/share/`, {
+        email: shareEmail.trim(),
+        permission: sharePermission,
+        shared_by: user.id,
+      });
+
+      if (response.data.success) {
+        notifySuccess(`File shared successfully with ${shareEmail}`);
+        closeShareModal();
+        fetchFiles();
+      } else {
+        notifyError(response.data.message || "Failed to share file");
+      }
+    } catch (error) {
+      console.error("Share error:", error);
+      notifyError(
+        error.response?.data?.message ||
+          "Failed to share file. Please try again."
+      );
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const generateShareableLink = async (file) => {
+    try {
+      const response = await client.post(`/files/${file.id}/generate-link/`, {
+        user_id: user.id,
+      });
+
+      if (response.data.shareable_link) {
+        await navigator.clipboard.writeText(response.data.shareable_link);
+        notifySuccess("Shareable link copied to clipboard!");
+
+        setFiles((prevFiles) =>
+          prevFiles.map((f) =>
+            f.id === file.id ? { ...f, is_private: false } : f
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Generate link error:", error);
+      notifyError("Failed to generate shareable link");
     }
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    if (!bytes) return "0 B";
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
   };
 
-  const handleFileChange = (event) => {
-    const files = event.target.files;
-    if (files.length > 0) {
-      setUploading(true);
-      let currentProgress = 0;
-      const interval = setInterval(() => {
-        currentProgress += 10;
-        setProgress(currentProgress);
-        if (currentProgress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setUploading(false);
-            setProgress(0);
-            alert("File(s) uploaded successfully!");
-          }, 500);
-        }
-      }, 300);
-    }
+  const formatDate = (dateString) => {
+    if (!dateString) return "Unknown";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
-  const handleFileUpload = (event) => {
-    handleFileChange(event);
+  const getFileIcon = (fileName) => {
+    if (fileName?.endsWith?.(".pdf")) return "📄";
+    if (fileName?.endsWith?.(".xlsx") || fileName?.endsWith?.(".xls"))
+      return "📊";
+    if (fileName?.endsWith?.(".docx") || fileName?.endsWith?.(".doc"))
+      return "📝";
+    if (
+      fileName?.endsWith?.(".jpg") ||
+      fileName?.endsWith?.(".jpeg") ||
+      fileName?.endsWith?.(".png")
+    )
+      return "🖼️";
+    return "📄";
   };
 
-  const toggleStar = (fileId, currentStarred) => {
-    setFiles((prevFiles) =>
-      prevFiles.map((file) =>
-        file.id === fileId ? { ...file, isStarred: !currentStarred } : file
-      )
+  const toggleDropdown = (id) => {
+    setActiveDropdown(activeDropdown === id ? null : id);
+  };
+
+  // Close dropdown when clicking outside - FIXED VERSION
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside dropdown
+      if (activeDropdown && !event.target.closest(".dropdown-container")) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [activeDropdown]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading your files...</p>
+        </div>
+      </div>
     );
-  };
-
-  const handleDownload = (file) => {
-    alert(`Downloading file: ${file.name}`);
-    setActiveDropdown(null);
-  };
-
-  const handleShare = (fileId) => {
-    alert(`Sharing file ID: ${fileId}`);
-    setActiveDropdown(null);
-  };
-
-  const handleDelete = (fileId) => {
-    if (confirm("Are you sure you want to delete this file?")) {
-      setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
-      alert("File deleted successfully!");
-    }
-    setActiveDropdown(null);
-  };
-
-  const toggleDropdown = (fileId) => {
-    setActiveDropdown(activeDropdown === fileId ? null : fileId);
-  };
-
-  const filteredFiles = files.filter((file) =>
-    file.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative">
       <div className="max-w-7xl mx-auto p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">
-            File Manager
-          </h1>
-          <p className="text-slate-600">
-            Manage and organize your documents securely
-          </p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Folder className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800">My Drive</h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="file"
+                id="file-upload"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="file-upload"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium cursor-pointer"
+              >
+                <Upload className="w-5 h-5" />
+                Upload Files
+              </label>
+            </div>
+          </div>
         </div>
 
-        {/* Action Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+        {/* Search and Controls */}
+        <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl px-6 py-5 mb-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 relative">
+              <svg
+                className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
               <input
                 type="text"
-                placeholder="Search files..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Search files"
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
-
-            {/* Upload Button */}
-            <button
-              onClick={() => document.getElementById("file-upload").click()}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-            >
-              <FaUpload className="w-5 h-5" />
-              Upload Files
+            <button className="p-3 hover:bg-slate-100 rounded-xl transition-colors">
+              <Filter className="w-5 h-5 text-slate-600" />
             </button>
-            <input
-              id="file-upload"
-              type="file"
-              multiple
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-            />
+            <div className="flex bg-slate-100 rounded-xl p-1">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded-lg transition-colors ${
+                  viewMode === "list"
+                    ? "bg-white shadow-sm"
+                    : "hover:bg-slate-200"
+                }`}
+              >
+                <List className="w-5 h-5 text-slate-700" />
+              </button>
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-2 rounded-lg transition-colors ${
+                  viewMode === "grid"
+                    ? "bg-white shadow-sm"
+                    : "hover:bg-slate-200"
+                }`}
+              >
+                <Grid className="w-5 h-5 text-slate-700" />
+              </button>
+            </div>
           </div>
+        </div>
+
+        {/* Files Section */}
+        <div className="mb-6">
+          <p className="text-slate-600">
+            {files.length} {files.length === 1 ? "item" : "items"} • Last
+            updated today
+          </p>
         </div>
 
         {/* Files Table */}
         {files.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
-            <FaFolder className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <Folder className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-slate-600 mb-2">
               No files yet
             </h3>
@@ -178,7 +438,7 @@ const Files = () => {
               htmlFor="empty-upload"
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg inline-flex items-center gap-2 font-medium cursor-pointer"
             >
-              <FaUpload className="w-5 h-5" />
+              <Upload className="w-5 h-5" />
               Upload Your First File
             </label>
           </div>
@@ -203,11 +463,11 @@ const Files = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredFiles.map((file, index) => (
+                {files.map((file, index) => (
                   <tr
                     key={file.id}
                     className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
-                      index === filteredFiles.length - 1 ? "border-b-0" : ""
+                      index === files.length - 1 ? "border-b-0" : ""
                     }`}
                   >
                     <td className="px-6 py-4">
@@ -215,7 +475,7 @@ const Files = () => {
                         onClick={() => toggleStar(file.id, file.isStarred)}
                         className="hover:scale-110 transition-transform"
                       >
-                        <FaStar
+                        <Star
                           className={`w-5 h-5 ${
                             file.isStarred
                               ? "text-yellow-500 fill-yellow-500"
@@ -260,43 +520,53 @@ const Files = () => {
                           onClick={() => handleDownload(file)}
                           className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                         >
-                          <FaDownload className="w-4 h-4 text-slate-600" />
+                          <Download className="w-4 h-4 text-slate-600" />
                         </button>
                         <button
-                          onClick={() => handleShare(file.id)}
+                          onClick={() => openShareModal(file)}
                           className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                         >
-                          <FaShare className="w-4 h-4 text-slate-600" />
+                          <Share2 className="w-4 h-4 text-slate-600" />
                         </button>
-                        <div className="relative">
+                        <div className="relative dropdown-container">
                           <button
-                            onClick={() => toggleDropdown(file.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleDropdown(file.id);
+                            }}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                           >
-                            <FaEllipsisV className="w-4 h-4 text-slate-600" />
+                            <MoreVertical className="w-4 h-4 text-slate-600" />
                           </button>
                           {activeDropdown === file.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-20 overflow-hidden">
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-30 overflow-hidden">
                               <button
                                 onClick={() => handleDownload(file)}
                                 className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3"
                               >
-                                <FaDownload className="w-4 h-4" />
+                                <Download className="w-4 h-4" />
                                 Download
                               </button>
                               <button
-                                onClick={() => handleShare(file.id)}
+                                onClick={() => openShareModal(file)}
                                 className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3"
                               >
-                                <FaShare className="w-4 h-4" />
-                                Share
+                                <Share2 className="w-4 h-4" />
+                                Share with Email
                               </button>
-                              {file.user_id === currentUser?.id && (
+                              <button
+                                onClick={() => generateShareableLink(file)}
+                                className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-3"
+                              >
+                                <Copy className="w-4 h-4" />
+                                Copy Shareable Link
+                              </button>
+                              {file.user_id === user?.id && (
                                 <button
                                   onClick={() => handleDelete(file.id)}
                                   className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3"
                                 >
-                                  <FaTrash className="w-4 h-4" />
+                                  <Trash2 className="w-4 h-4" />
                                   Delete
                                 </button>
                               )}
@@ -312,40 +582,20 @@ const Files = () => {
           </div>
         )}
 
-        {/* File Count */}
-        <div className="mt-4 text-sm text-slate-600">
-          Showing {filteredFiles.length} of {files.length} files
-        </div>
+        <ShareModal
+          isOpen={shareModalOpen}
+          onClose={closeShareModal}
+          selectedFile={selectedFile}
+          shareEmail={shareEmail}
+          setShareEmail={setShareEmail}
+          sharePermission={sharePermission}
+          setSharePermission={setSharePermission}
+          onSubmit={handleShareSubmit}
+          loading={shareLoading}
+        />
       </div>
-
-      {/* Upload Progress Modal */}
-      {uploading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
-            <h3 className="text-2xl font-bold text-slate-800 mb-6 text-center">
-              Uploading Files
-            </h3>
-            <div className="space-y-4">
-              <div className="relative pt-1">
-                <div className="overflow-hidden h-3 text-xs flex rounded-full bg-slate-200">
-                  <div
-                    style={{ width: `${progress}%` }}
-                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600 transition-all duration-300 rounded-full"
-                  ></div>
-                </div>
-              </div>
-              <p className="text-center text-2xl font-bold text-slate-800">
-                {progress}%
-              </p>
-              <p className="text-center text-sm text-slate-600">
-                Please wait while we upload your files...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default Files;
+export default FileGuardDrive;

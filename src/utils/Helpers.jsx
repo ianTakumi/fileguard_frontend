@@ -112,3 +112,24 @@ export const formatBytes = (bytes) => {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
+
+const getFileIcon = (fileName) => {
+  const extension = fileName.split(".").pop().toLowerCase();
+  switch (extension) {
+    case "pdf":
+      return <FaFilePdf className="text-red-500" />;
+    case "docx":
+    case "doc":
+      return <FaFileWord className="text-blue-500" />;
+    case "xlsx":
+    case "xls":
+      return <FaFileExcel className="text-green-500" />;
+    case "jpg":
+    case "jpeg":
+    case "png":
+    case "gif":
+      return <FaFileImage className="text-purple-500" />;
+    default:
+      return <FaFile className="text-slate-500" />;
+  }
+};
