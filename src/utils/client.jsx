@@ -1,7 +1,15 @@
 import axios from "axios";
 
+const getBaseURL = () => {
+  if (import.meta.env.DEV) {
+    return "http://localhost:8000"; // Development
+  } else {
+    return "https://fileguardpython-backend.onrender.com"; // Production
+  }
+};
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_LINK, // e.g., http://127.0.0.1:8000/api/v1
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },

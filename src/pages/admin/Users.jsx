@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FiEdit,
   FiTrash2,
@@ -20,6 +20,7 @@ const UsersPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(null);
+  const dropdownRefs = useRef({});
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -56,6 +57,22 @@ const UsersPage = () => {
 
   useEffect(() => {
     fetchUsers();
+
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      const isClickInsideAnyDropdown = Object.values(dropdownRefs.current).some(
+        (ref) => ref && ref.contains(event.target)
+      );
+
+      if (!isClickInsideAnyDropdown) {
+        setDropdownOpen(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleDeactivate = async (userID) => {
@@ -120,9 +137,34 @@ const UsersPage = () => {
     }
   };
 
-  const toggleDropdown = (id, user) => {
+  const toggleDropdown = (userId, event) => {
+    event.stopPropagation();
+    setDropdownOpen(dropdownOpen === userId ? null : userId);
+  };
+
+  const handleEdit = (user, event) => {
+    event.stopPropagation();
     setSelectedUser(user);
-    setDropdownOpen(dropdownOpen === id ? null : id);
+    openModal(user);
+    setDropdownOpen(null);
+  };
+
+  const handleDeactivateClick = (user, event) => {
+    event.stopPropagation();
+    handleDeactivate(user._id);
+    setDropdownOpen(null);
+  };
+
+  const handleActivateClick = (user, event) => {
+    event.stopPropagation();
+    handleActivate(user._id);
+    setDropdownOpen(null);
+  };
+
+  const setDropdownRef = (node, userId) => {
+    if (node) {
+      dropdownRefs.current[userId] = node;
+    }
   };
 
   const renderSkeletonRows = () => {
@@ -176,17 +218,6 @@ const UsersPage = () => {
               User Management
             </h1>
           </div>
-        </div>
-
-        {/* 🔹 Add User Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => openModal()}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md"
-          >
-            <FiUsers size={18} />
-            Add New User
-          </button>
         </div>
 
         {/* 🔹 Table Section */}
@@ -261,39 +292,33 @@ const UsersPage = () => {
                       </td>
                       <td className="py-3 px-4 text-center relative">
                         <button
-                          onClick={() => toggleDropdown(user._id, user)}
-                          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-all duration-200"
+                          onClick={(e) => toggleDropdown(user._id, e)}
+                          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-all duration-200 relative z-20"
                         >
                           <FiMoreVertical size={16} />
                         </button>
 
                         {dropdownOpen === user._id && (
-                          <div className="absolute right-4 mt-1 bg-white border border-gray-200 shadow-lg rounded-lg w-40 z-10 overflow-hidden">
+                          <div
+                            ref={(node) => setDropdownRef(node, user._id)}
+                            className="absolute right-4 top-full mt-1 bg-white border border-gray-200 shadow-lg rounded-lg w-40 z-50 overflow-hidden"
+                          >
                             <button
-                              onClick={() => {
-                                openModal(selectedUser);
-                                setDropdownOpen(null);
-                              }}
+                              onClick={(e) => handleEdit(user, e)}
                               className="flex items-center px-4 py-2 w-full text-left hover:bg-blue-50 text-blue-600 transition-colors duration-200"
                             >
                               <FiEdit className="mr-3" /> Edit
                             </button>
-                            {selectedUser?.status === "activated" ? (
+                            {user.status === "activated" ? (
                               <button
-                                onClick={() => {
-                                  handleDeactivate(selectedUser.id);
-                                  setDropdownOpen(null);
-                                }}
+                                onClick={(e) => handleDeactivateClick(user, e)}
                                 className="flex items-center px-4 py-2 w-full text-left hover:bg-yellow-50 text-yellow-600 transition-colors duration-200"
                               >
                                 <FiUserX className="mr-3" /> Deactivate
                               </button>
                             ) : (
                               <button
-                                onClick={() => {
-                                  handleActivate(selectedUser.id);
-                                  setDropdownOpen(null);
-                                }}
+                                onClick={(e) => handleActivateClick(user, e)}
                                 className="flex items-center px-4 py-2 w-full text-left hover:bg-green-50 text-green-600 transition-colors duration-200"
                               >
                                 <FiUserX className="mr-3" /> Activate

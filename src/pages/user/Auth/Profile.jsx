@@ -37,9 +37,7 @@ const Profile = () => {
   const handleDelete = async (userID) => {
     try {
       setIsLoading(true);
-      await client.delete(`/users/${userID}/`, {
-        withCredentials: true,
-      });
+      await client.delete(`/users/delete/${userID}/`);
 
       notifySuccess("Account successfully deleted");
       navigate("/");
