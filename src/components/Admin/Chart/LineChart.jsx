@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Line } from "react-chartjs-2";
-import client from "../../../utils/client";
-import { notifyError } from "../../../utils/Helpers";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,34 +22,28 @@ ChartJS.register(
   Legend
 );
 
-const LineChart = () => {
-  const [contacts, setContacts] = useState([]);
-  const [monthlyData, setMonthlyData] = useState(new Array(12).fill(0));
-
-  const fetchContacts = async () => {
-    try {
-      const response = await client.get("/contacts/");
-      setContacts(response.data);
-    } catch {
-      notifyError("Error fetching contacts");
-    }
-  };
-
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  useEffect(() => {
-    // Calculate the number of messages per month
-    const counts = new Array(12).fill(0); // Initialize an array with 12 months
+const LineChart = ({ contacts = [] }) => {
+  // Calculate the number of messages per month from contacts prop
+  const calculateMonthlyData = () => {
+    const counts = new Array(12).fill(0);
 
     contacts.forEach((contact) => {
-      const month = new Date(contact.created_at).getMonth(); // Get month from created_at field
-      counts[month] += 1; // Increment the count for the respective month
+      try {
+        if (contact && contact.created_at) {
+          const month = new Date(contact.created_at).getMonth();
+          if (!isNaN(month) && month >= 0 && month < 12) {
+            counts[month] += 1;
+          }
+        }
+      } catch (error) {
+        console.error("Error processing contact:", contact, error);
+      }
     });
 
-    setMonthlyData(counts);
-  }, [contacts]);
+    return counts;
+  };
+
+  const monthlyData = calculateMonthlyData();
 
   // Data for the LineChart
   const data = {
@@ -72,20 +64,49 @@ const LineChart = () => {
     datasets: [
       {
         label: "Contact Us Messages",
-        data: monthlyData, // Use monthlyData as the chart's data
+        data: monthlyData,
         backgroundColor: "rgba(75, 192, 192, 0.2)",
         borderColor: "rgba(75, 192, 192, 1)",
         borderWidth: 2,
         fill: true,
         pointBackgroundColor: "rgba(75, 192, 192, 1)",
-        tension: 0.4, // Smooth the line
+        tension: 0.4,
       },
     ],
   };
 
-  // Chart options
+  // Chart options with animations
   const options = {
     responsive: true,
+    // 🎬 ADD ANIMATIONS HERE
+    animation: {
+      duration: 2000, // 2 seconds animation
+      easing: "easeOutQuart", // Smooth easing
+      animateScale: true,
+      animateRotate: true,
+    },
+    transitions: {
+      show: {
+        animations: {
+          x: {
+            from: 0,
+          },
+          y: {
+            from: 0,
+          },
+        },
+      },
+      hide: {
+        animations: {
+          x: {
+            to: 0,
+          },
+          y: {
+            to: 0,
+          },
+        },
+      },
+    },
     plugins: {
       legend: {
         position: "top",
@@ -107,7 +128,7 @@ const LineChart = () => {
         beginAtZero: true,
         ticks: {
           callback: function (value) {
-            return value.toLocaleString(); // Format values with commas if necessary
+            return value.toLocaleString();
           },
         },
       },

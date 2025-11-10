@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import { getUser, notifySuccess, notifyError } from "../../../utils/Helpers";
+import { notifySuccess, notifyError } from "../../../utils/Helpers";
 import { ToastContainer } from "react-toastify";
 import client from "../../../utils/client";
+import { useSelector } from "react-redux";
 
 const ContactModal = ({ onClose, open, contact, onSuccess }) => {
   const {
@@ -13,8 +14,8 @@ const ContactModal = ({ onClose, open, contact, onSuccess }) => {
     control,
     formState: { errors },
   } = useForm();
-
-  const [isSubmitting, setIsSubmitting] = useState(false); // 🔹 track loading state
+  const user = useSelector((state) => state.user.user);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     reset({
@@ -26,7 +27,6 @@ const ContactModal = ({ onClose, open, contact, onSuccess }) => {
   }, [contact, reset]);
 
   const onSubmit = async (data) => {
-    const user = getUser();
     data.user = user;
 
     try {

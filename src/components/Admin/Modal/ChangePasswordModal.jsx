@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import supabase from "../../../utils/supabase";
+import { notifyError, notifySuccess } from "../../../utils/Helpers";
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -25,12 +25,12 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
       if (error) throw error;
 
-      toast.success("Password updated successfully!");
+      notifySuccess("Password updated successfully!");
       reset();
       onClose();
     } catch (error) {
       console.error("Error updating password:", error);
-      toast.error(error.message || "Failed to update password");
+      notifyError(error.message || "Failed to update password");
     } finally {
       setLoading(false);
     }

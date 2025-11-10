@@ -2,12 +2,12 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import client from "../../../../utils/client";
 import {
-  getUser,
   notifySuccess,
   notifyError,
   getBorderColor,
 } from "../../../../utils/Helpers";
 import { ToastContainer } from "react-toastify";
+import { useSelector } from "react-redux";
 
 const ChangePassword = ({ onClose }) => {
   const {
@@ -15,9 +15,9 @@ const ChangePassword = ({ onClose }) => {
     handleSubmit,
     formState: { errors, touchedFields },
   } = useForm();
+  const user = useSelector((state) => state.user.user);
 
   const onSubmit = (data) => {
-    const user = getUser();
     data.user = user;
     console.log(data);
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiHelpCircle, FiMenu } from "react-icons/fi";
-import { notifySuccess, logout } from "../../../../utils/Helpers";
+import { notifySuccess } from "../../../../utils/Helpers";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import supabase from "../../../../utils/supabase";

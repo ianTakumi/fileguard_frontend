@@ -11,59 +11,76 @@ import client from "../../utils/client";
 const Home = () => {
   const loggedIn = useSelector((state) => state.user.loggedIn);
   const user = useSelector((state) => state.user.user);
-  const [userCount, setUserCount] = useState(0);
-  const [contactCount, setContactCount] = useState(0);
-  const [fileCount, setFileCount] = useState(0);
+  const [userCount, setUserCount] = useState(null);
+  const [contactCount, setContactCount] = useState(null);
+  const [fileCount, setFileCount] = useState(null);
+  const [contacts, setContacts] = useState([]); // For LineChart data
+  const [fileTypes, setFileTypes] = useState({}); // For PieChart file type data (e.g., {"pdf": 4, "png": 3})
   const [showWelcome, setShowWelcome] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const getNumberofUsers = async () => {
+  // Fetch all dashboard data in one function
+  const fetchAllData = async () => {
+    setLoading(true);
     try {
-      const response = await client.get(`/users/user-count`, {
-        withCredentials: true,
-      });
-      setUserCount(response.data.user_count);
-    } catch (err) {
-      console.error("Error fetching user count:", err);
-    }
-  };
+      // Use Promise.all to fetch all data simultaneously
+      const [
+        usersResponse,
+        contactsResponse,
+        filesResponse,
+        contactsListResponse,
+        fileTypesResponse, // This is for PieChart
+      ] = await Promise.all([
+        client.get(`/users/count-total-users/`),
+        client.get(`/contacts/count/`),
+        client.get("/files/count-all/"),
+        client.get("/contacts/"), // For LineChart
+        client.get("/files/top-file-types/"), // For PieChart - this returns {"pdf": 4, "png": 3}
+      ]);
 
-  const getNumberOfContact = async () => {
-    try {
-      await client.get(`/contacts/count/`).then((response) => {
-        console.log(response);
-        setContactCount(response.data.count);
-      });
-    } catch (err) {
-      notifyError("Error fetching number of contacts");
-      console.error("Error fetching number of contacts:", err);
-    }
-  };
+      // Set all states at once
+      setUserCount(usersResponse.data.total_users || 0);
+      setContactCount(contactsResponse.data.count || 0);
+      setFileCount(filesResponse.data.total_files || 0);
+      setContacts(
+        contactsListResponse.data?.data || contactsListResponse.data || []
+      );
+      setFileTypes(fileTypesResponse.data || {}); // This will be {"pdf": 4, "png": 3}
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      notifyError("Error loading dashboard data");
 
-  const getNumberOfFiles = async () => {
-    try {
-      await client
-        .get("/files/count-all/", {
-          withCredentials: true,
-        })
-        .then((response) => {
-          console.log(response);
-          setFileCount(response.count);
-        });
-    } catch (err) {
-      notifyError("Error fetching number of files");
-      console.error("Error fetching number of contacts:", err);
+      // Set defaults on error
+      setUserCount(0);
+      setContactCount(0);
+      setFileCount(0);
+      setContacts([]);
+      setFileTypes({});
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getNumberofUsers();
-    getNumberOfContact();
-    getNumberOfFiles();
+    fetchAllData();
 
     if (loggedIn && user && user.is_superuser === true) {
       notifySuccess("Successfully logged in");
     }
   }, [loggedIn]);
+
+  // Skeleton Loading Component
+  const WidgetSkeleton = () => (
+    <div className="animate-pulse bg-gray-200 rounded-lg p-6 w-full max-w-xs">
+      <div className="flex items-center space-x-4">
+        <div className="rounded-full bg-gray-300 h-12 w-12"></div>
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+          <div className="h-6 bg-gray-300 rounded w-1/2"></div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -87,38 +104,72 @@ const Home = () => {
         </div>
       )}
 
-      <div className="flex mt-5 justify-between items-center">
-        <Widget type="User" count={userCount} />
-        <Widget type="Contact" count={contactCount} />
-        <Widget type="File" count={fileCount} />
+      <div className="flex mt-5 justify-between items-center gap-4">
+        {loading ? (
+          <>
+            <WidgetSkeleton />
+            <WidgetSkeleton />
+            <WidgetSkeleton />
+          </>
+        ) : (
+          <>
+            <Widget type="User" count={userCount} />
+            <Widget type="Contact" count={contactCount} />
+            <Widget type="File" count={fileCount} />
+          </>
+        )}
       </div>
 
       <div className="container mt-5 bg-white p-4 shadow-md rounded-lg">
-        <BarChart />
-
-        <div className="flex justify-between items-center mt-4">
-          <div className="text-blue-500 cursor-pointer hover:underline">
-            View More
+        {loading ? (
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-64 bg-gray-200 rounded w-full"></div>
+            <div className="flex justify-between items-center mt-4">
+              <div className="h-4 bg-gray-200 rounded w-1/6"></div>
+              <div className="h-10 bg-gray-200 rounded w-1/6"></div>
+            </div>
           </div>
-          <button className="bg-transparent border border-green-500 text-green-500 px-4 py-2 rounded hover:bg-green-500 hover:text-white transition-colors duration-300">
-            Download Report
-          </button>
-        </div>
+        ) : (
+          <>
+            <BarChart />
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-blue-500 cursor-pointer hover:underline">
+                View More
+              </div>
+              <button className="bg-transparent border border-green-500 text-green-500 px-4 py-2 rounded hover:bg-green-500 hover:text-white transition-colors duration-300">
+                Download Report
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Container for BarChart, LineChart, and PieChart */}
-      {/* <div className="flex flex-wrap container mt-5 gap-5   rounded-lg w-full ">
+      {/* Container for Map and PieChart */}
+      <div className="flex flex-wrap container mt-5 gap-5 rounded-lg w-full">
         <div className="flex-grow basis-1/3 min-w-[300px] p-4 bg-white shadow rounded-lg">
-          <Map />
+          {loading ? (
+            <div className="animate-pulse h-64 bg-gray-200 rounded"></div>
+          ) : (
+            <Map />
+          )}
         </div>
         <div className="flex-grow basis-1/3 min-w-[300px] justify-center items-center p-4 bg-white shadow rounded-lg">
-          <PieChart />
+          {loading ? (
+            <div className="animate-pulse h-64 bg-gray-200 rounded"></div>
+          ) : (
+            <PieChart fileTypes={fileTypes} />
+          )}
         </div>
       </div>
 
       <div className="container mt-5 bg-white p-4 shadow-md rounded-lg">
-        <LineChart />
-      </div> */}
+        {loading ? (
+          <div className="animate-pulse h-64 bg-gray-200 rounded"></div>
+        ) : (
+          <LineChart contacts={contacts} />
+        )}
+      </div>
     </div>
   );
 };

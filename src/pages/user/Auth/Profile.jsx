@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
-import { notifyError, notifySuccess, setUser } from "../../../utils/Helpers";
+import { notifyError, notifySuccess } from "../../../utils/Helpers";
 import ChangePassword from "../../../components/User/Auth/Modals/ChangePassword";
 import client from "../../../utils/client";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { FaCamera, FaTrashAlt, FaUserEdit, FaLock } from "react-icons/fa";
 import supabase from "../../../utils/supabase";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser, updateAvatar } from "../../../redux/slices/userSlice";
 
 const Profile = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -14,7 +15,9 @@ const Profile = () => {
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const dispatch = useDispatch();
 
+  console.log(user);
   const {
     register,
     handleSubmit,
@@ -34,15 +37,14 @@ const Profile = () => {
   const handleDelete = async (userID) => {
     try {
       setIsLoading(true);
-      await client.delete(
-        `${process.env.REACT_APP_API_LINK}/users/${userID}/`,
-        {
-          withCredentials: true,
-        }
-      );
+      await client.delete(`/users/${userID}/`, {
+        withCredentials: true,
+      });
+
       notifySuccess("Account successfully deleted");
       navigate("/");
     } catch (error) {
+      console.log("Something went wrong: ", error);
       notifyError("Something went wrong while deleting account");
     } finally {
       setIsLoading(false);
@@ -55,23 +57,25 @@ const Profile = () => {
 
     const formData = new FormData();
     formData.append("profile_picture", file);
+    console.log(formData);
 
     try {
       setIsLoading(true);
       const response = await client.post(
-        `${process.env.REACT_APP_API_LINK}/profile/change-picture/`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
+        `/users/upload-profile-picture/${user.id}/`,
+        formData
       );
-      const updatedUser = { ...user, avatar_url: response.data.avatar_url };
-      setUser(updatedUser);
-      window.location.reload();
-      notifySuccess("Profile picture updated!");
+
+      if (response.status === 200) {
+        notifySuccess("Profile picture updated!");
+        const { avatar_url } = response.data;
+
+        dispatch(updateAvatar(avatar_url));
+        window.location.reload();
+      }
     } catch (error) {
-      notifyError("Failed to update profile picture.");
+      console.log(error);
+      notifyError("Failed to update profile picture. ", error);
     } finally {
       setIsLoading(false);
     }
@@ -111,9 +115,7 @@ const Profile = () => {
         notifyError("Failed to fetch updated user data.");
         return;
       }
-
-      // 3️⃣ Update user in your context/local state
-      setUser(refreshedUser.user);
+      dispatch(setUser(refreshedUser));
       notifySuccess("Profile updated successfully!");
     } catch (error) {
       console.error("Update profile error:", error);
@@ -136,7 +138,7 @@ const Profile = () => {
             <div className="relative mb-6">
               <img
                 src={
-                  user.avatar_url ||
+                  user.avatar ||
                   "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                 }
                 alt="Profile"

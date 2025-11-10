@@ -3,7 +3,6 @@ import { FiHome, FiFileText, FiUsers, FiCloud, FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import client from "../../../../utils/client";
 import {
-  getUser,
   notifyError,
   notifySuccess,
   formatStorageSize,

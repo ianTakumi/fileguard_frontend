@@ -500,16 +500,14 @@ const FileGuardDrive = () => {
                         >
                           <Download className="w-4 h-4 text-slate-600" />
                         </button>
-                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                          <Share2 className="w-4 h-4 text-slate-600" />
-                        </button>
+
                         <div className="relative">
-                          <button
+                          {/* <button
                             onClick={() => toggleDropdown(file.id)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                           >
                             <MoreVertical className="w-4 h-4 text-slate-600" />
-                          </button>
+                          </button> */}
                           {activeDropdown === file.id && (
                             <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-20 overflow-hidden">
                               <button

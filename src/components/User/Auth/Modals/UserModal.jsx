@@ -23,11 +23,13 @@ const ChangePassword = ({ onClose, fileId }) => {
       username: data.username,
     };
     await client
-      .post(`${process.env.REACT_APP_API_LINK}/files/share/`, submit_data)
-      .then((response) => {
-        notifySuccess("Successfully shared the file");
-        reset();
-        onclose();
+      .post(`/files/share/`, submit_data)
+      .then((res) => {
+        if (res.status === 200) {
+          notifySuccess("Successfully shared the file");
+          reset();
+          onclose();
+        }
       })
       .catch((error) => {
         notifyError("Something went wrong");

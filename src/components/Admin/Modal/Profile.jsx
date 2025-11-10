@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import supabase from "../../../utils/supabase";
+import { useDispatch } from "react-redux";
+import { setUser } from "../../../redux/slices/userSlice";
 
 const ProfileModal = ({ isOpen, onClose, user }) => {
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -32,32 +35,6 @@ const ProfileModal = ({ isOpen, onClose, user }) => {
     }
   }, [user, reset, isOpen]);
 
-  // Function to set user in localStorage (same as authenticate)
-  const setUser = (data) => {
-    if (typeof window !== "undefined" && data.session && data.user) {
-      localStorage.setItem("supabase_session", JSON.stringify(data.session));
-
-      // Extract user info (works for Supabase and custom backends)
-      const { user } = data;
-
-      // If Supabase, user info might be inside user_metadata
-      const userData = {
-        id: user.id,
-        email: user.email,
-        first_name: user.user_metadata?.first_name || user.first_name || "",
-        last_name: user.user_metadata?.last_name || user.last_name || "",
-        role: user.user_metadata?.role || user.role || "",
-        avatar: user.user_metadata?.avatar || null,
-        phone_number:
-          user.user_metadata?.phone_number || user.phone_number || "",
-      };
-
-      // Save user data
-      localStorage.setItem("supabase_user", JSON.stringify(userData));
-      localStorage.setItem("user", JSON.stringify(userData));
-    }
-  };
-
   const onSubmit = async (data) => {
     setLoading(true);
 
@@ -82,24 +59,99 @@ const ProfileModal = ({ isOpen, onClose, user }) => {
 
       if (updateAuthError) throw updateAuthError;
 
-      // Get the updated session to set in localStorage
+      // Get the updated session
       const { data: sessionData } = await supabase.auth.getSession();
 
-      if (sessionData.session) {
-        // Set the updated user data in localStorage (same as authenticate function)
-        setUser({
-          session: sessionData.session,
-          user: updatedUser.user,
-        });
+      if (sessionData.session && updatedUser.user) {
+        // ✅ Dispatch setUser to update Redux store
+        dispatch(
+          setUser({
+            session: sessionData.session,
+            user: updatedUser.user,
+          })
+        );
+
+        // ✅ Also update localStorage to persist changes
+        localStorage.setItem(
+          "supabase.auth.token",
+          JSON.stringify({
+            currentSession: sessionData.session,
+            user: updatedUser.user,
+          })
+        );
       }
 
       toast.success("Profile updated successfully!");
       onClose();
 
-      // Reload the page to reflect changes
+      // Optional: Reload the page to reflect changes everywhere
       setTimeout(() => {
         window.location.reload();
       }, 1000);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error(error.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Alternative onSubmit without page reload (if you prefer)
+  const onSubmitWithoutReload = async (data) => {
+    setLoading(true);
+
+    try {
+      const {
+        data: { user: currentUser },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError) throw authError;
+
+      // Update user metadata in Supabase Auth
+      const { data: updatedUser, error: updateAuthError } =
+        await supabase.auth.updateUser({
+          email: data.email,
+          data: {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            phone_number: data.phone_number,
+          },
+        });
+
+      if (updateAuthError) throw updateAuthError;
+
+      // Get the updated session
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (sessionData.session && updatedUser.user) {
+        // ✅ Dispatch setUser to update Redux store with proper structure
+        dispatch(
+          setUser({
+            session: sessionData.session,
+            user: {
+              ...updatedUser.user,
+              user_metadata: {
+                first_name: data.first_name,
+                last_name: data.last_name,
+                phone_number: data.phone_number,
+                // Include other existing metadata
+                ...updatedUser.user.user_metadata,
+              },
+            },
+          })
+        );
+
+        // ✅ Update localStorage
+        const authData = {
+          currentSession: sessionData.session,
+          user: updatedUser.user,
+        };
+        localStorage.setItem("supabase.auth.token", JSON.stringify(authData));
+      }
+
+      toast.success("Profile updated successfully!");
+      onClose();
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error(error.message || "Failed to update profile");
