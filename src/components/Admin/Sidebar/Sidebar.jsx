@@ -10,6 +10,7 @@ import {
   MdLogout,
   MdAssignment,
   MdPhone,
+  MdSubscriptions, // Added subscriptions icon
 } from "react-icons/md";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -75,13 +76,9 @@ const Sidebar = ({ isMinimized }) => {
     >
       {/* Logo */}
       {!isMinimized ? (
-        <div className="p-4 text-xl font-bold font-serif flex justify-center items-center -ml-2">
-          <img
-            src="/images/logoTransparent.png"
-            alt="Cinemax"
-            className="w-12 mr-3"
-          />
-          Cinemax
+        <div className="p-4 text-xl font-bold font-serif space-x-2 flex justify-center items-center -ml-2">
+          <img src="/images/logo.png" alt="Logo" className="h-10" />
+          <span className="text-2xl font-bold text-blue-600">FileGuard</span>
         </div>
       ) : (
         <div className="p-4 flex justify-center items-center">
@@ -143,6 +140,27 @@ const Sidebar = ({ isMinimized }) => {
             <MdGroup className="mr-5 text-[#605BFF]" size={26} />
             {!isMinimized && (
               <span className="text-[16px] text-gray-500">Users</span>
+            )}
+          </li>
+        </Link>
+
+        {/* Subscriptions */}
+        <Link to="/admin/subscriptions">
+          <li
+            className="mt-3 py-2 px-8 flex items-center cursor-pointer transition-colors duration-300 ease-in-out"
+            onMouseOver={() => setHovered("subscriptions")}
+            onMouseOut={() => setHovered(null)}
+            onClick={() => handleItemClick("subscriptions")}
+            style={{
+              backgroundColor:
+                hovered === "subscriptions" || selected === "subscriptions"
+                  ? "#D9DDE8"
+                  : "transparent",
+            }}
+          >
+            <MdSubscriptions className="mr-5 text-[#605BFF]" size={26} />
+            {!isMinimized && (
+              <span className="text-[16px] text-gray-500">Subscriptions</span>
             )}
           </li>
         </Link>

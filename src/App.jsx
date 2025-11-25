@@ -28,6 +28,7 @@ import EmailAdmin from "./pages/admin/Email";
 import ProfileAdmin from "./pages/admin/Profile";
 import ContactAdminPages from "./pages/admin/Contact";
 import NewPassword from "./pages/user/NewPassword";
+import AdminSubscriptions from "./pages/admin/Subscriptions";
 
 function App() {
   return (
@@ -55,7 +56,8 @@ function App() {
           <Route path="users" element={<UsersPage />}></Route>
           <Route path="email" element={<EmailAdmin />}></Route>
           <Route path="profile" element={<ProfileAdmin />}></Route>
-          <Route path="contacts" element={<ContactAdminPages />}></Route>
+          <Route path="contacts" element={<ContactAdminPages />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />}></Route>
         </Route>
       </Routes>
       <ToastContainer />

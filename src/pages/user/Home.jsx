@@ -11,8 +11,9 @@ import {
   FaArrowRight,
   FaCheckCircle,
 } from "react-icons/fa";
-
+import { useNavigate } from "react-router-dom";
 const Home = () => {
+  const navigate = useNavigate();
   const benefits = [
     {
       icon: <FaLock className="text-4xl" />,
@@ -67,20 +68,38 @@ const Home = () => {
                 <button className="flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                   Get Started Free <FaArrowRight />
                 </button>
-                <button className="flex items-center justify-center gap-2 px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-all">
+                <button
+                  onClick={() => navigate("/about-us")}
+                  className="flex items-center justify-center gap-2 px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-all"
+                >
                   Learn More <FaArrowRight />
                 </button>
               </div>
 
               {/* Trusted Users (Hero) */}
               <div className="flex items-center gap-6 pt-4">
-                <div className="flex -space-x-2">
-                  <div className="w-10 h-10 rounded-full bg-blue-300 border-2 border-white"></div>
-                  <div className="w-10 h-10 rounded-full bg-blue-400 border-2 border-white"></div>
-                  <div className="w-10 h-10 rounded-full bg-blue-500 border-2 border-white"></div>
+                <div className="flex -space-x-3">
+                  <img
+                    src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1600"
+                    alt="User"
+                    className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                  />
+                  <img
+                    src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1600"
+                    alt="User"
+                    className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                  />
+                  <img
+                    src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1600"
+                    alt="User"
+                    className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                  />
+                  <div className="w-12 h-12 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">+9.9K</span>
+                  </div>
                 </div>
                 <div className="text-sm">
-                  <p className="font-semibold">10,000+ Users</p>
+                  <p className="font-semibold text-white">10,000+ Users</p>
                   <p className="text-blue-200">Trust FileGuard</p>
                 </div>
               </div>
